@@ -344,9 +344,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const today = new Date().toDateString();
         if (videoData.date !== today) {
-            if (videoData.date !== '') {
-                videoData.index = (videoData.index + 1) % videoList.length;
+            let newIndex = Math.floor(Math.random() * videoList.length);
+            // If there's an existing video, ensure the new one is different
+            if (videoData.date !== '' && newIndex === videoData.index && videoList.length > 1) {
+                newIndex = (newIndex + 1) % videoList.length;
             }
+            videoData.index = newIndex;
             videoData.date = today;
             try {
                 localStorage.setItem('chikooBannerVideo', JSON.stringify(videoData));
