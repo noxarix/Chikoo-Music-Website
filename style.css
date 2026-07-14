@@ -1778,7 +1778,61 @@ input:focus-visible {
 .auth-tab.active { color: var(--accent-purple); border-bottom-color: var(--accent-purple); }
 .auth-form { display: none; flex-direction: column; gap: 15px; }
 .auth-form.active { display: flex; }
-.auth-submit { margin-top: 10px; width: 100%; padding: 12px; }
+.input-group {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px 15px;
+    gap: 15px;
+    transition: all 0.3s ease;
+}
+.input-group:focus-within {
+    border-color: var(--accent-purple);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 10px rgba(183, 33, 255, 0.2);
+}
+.input-group i {
+    color: var(--text-secondary);
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+.input-group:focus-within i {
+    color: var(--accent-purple);
+}
+.input-group input {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 14px;
+    width: 100%;
+    outline: none;
+}
+.input-group input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+.auth-submit { 
+    margin-top: 10px; 
+    width: 100%; 
+    padding: 12px; 
+    background: var(--accent-purple);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.auth-submit:hover {
+    background: var(--accent-purple-hover, #9b19df);
+    transform: translateY(-2px);
+}
+.btn-maybe-later:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+}
 .admin-card { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; margin-bottom: 15px; }
 .admin-card h3 { color: var(--accent-purple); margin-bottom: 10px; }
 .admin-card p { color: var(--text-secondary); font-size: 14px; margin-bottom: 5px; }
