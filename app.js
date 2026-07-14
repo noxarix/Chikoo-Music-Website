@@ -153,6 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Auth
         authBtn: document.getElementById('auth-btn'),
         authModal: document.getElementById('auth-modal'),
+        closeAuthModal: document.getElementById('close-auth'),
         tabLogin: document.getElementById('tab-login'),
         tabRegister: document.getElementById('tab-register'),
         formLogin: document.getElementById('form-login'),
@@ -1258,9 +1259,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
         document.querySelectorAll('.btn-maybe-later').forEach(btn => {
             btn.addEventListener('click', () => {
-                elements.authModal.classList.remove('open');
+                if (elements.authModal) elements.authModal.classList.remove('open');
             });
         });
+        
+        if (elements.closeAuthModal) {
+            elements.closeAuthModal.addEventListener('click', () => {
+                if (elements.authModal) elements.authModal.classList.remove('open');
+            });
+        }
         
         // Admin View Logic
         const adminBtn = document.getElementById('btn-refresh-admin');
