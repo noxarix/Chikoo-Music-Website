@@ -2044,7 +2044,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             // Ensure db, doc, setDoc are accessible here. They are imported at the top of app.js.
                             const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
                             await setDoc(doc(db, 'users', user.uid), { role: newRole }, { merge: true });
-                            showToast(\`User role updated to \${newRole}!\`);
+                            showToast(`User role updated to ${newRole}!`);
                             loadAdminData(); // Refresh the list
                         } catch (err) {
                             showToast('Failed to update role: ' + err.message);
