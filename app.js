@@ -1285,6 +1285,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (elements.formLogin) elements.formLogin.addEventListener('submit', handleLogin);
         if (elements.formRegister) elements.formRegister.addEventListener('submit', handleRegister);
         
+        const btnForgotPassword = document.getElementById('btn-forgot-password');
+        if (btnForgotPassword) {
+            btnForgotPassword.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('login-identifier').value;
+                if (!email || !email.includes('@')) {
+                    showToast('Please enter your email address in the field first.');
+                    return;
+                }
+                try {
+                    await sendPasswordResetEmail(auth, email);
+                    showToast('Password reset email sent! Check your inbox.');
+                } catch (error) {
+                    showToast('Error: ' + error.message);
+                }
+            });
+        }
+        
         document.querySelectorAll('.btn-maybe-later').forEach(btn => {
             btn.addEventListener('click', () => {
                 if (elements.authModal) elements.authModal.classList.remove('open');
@@ -1757,7 +1775,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     function updateAuthUI() {
         if (state.token && state.user) {
-            elements.authBtn.innerHTML = `<i class="fa-solid fa-user"></i> ${state.user.username}`;
+            elements.authBtn.innerHTML = `<i class="fa-solid fa-sign-out-alt"></i> Logout (${state.user.username})`;
             if (state.user.role === 'owner' && elements.navAdmin) {
                 elements.navAdmin.style.display = 'block';
             }
