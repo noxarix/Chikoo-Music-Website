@@ -1795,7 +1795,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.token && state.user) {
             elements.authBtn.innerHTML = `<i class="fa-solid fa-sign-out-alt"></i> Logout (${state.user.username})`;
             if (state.user.role === 'owner' && elements.navAdmin) {
-                elements.navAdmin.style.display = 'block';
+                elements.navAdmin.style.display = 'flex';
             }
             if (elements.authModal) {
                 elements.authModal.classList.remove('open');
