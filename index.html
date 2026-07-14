@@ -4,8 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-site-verification" content="YOUR_GOOGLE_VERIFICATION_CODE" />
     <meta name="description"
         content="Chikoo Music - Stream trending Bollywood, English, Punjabi and global hits for free. Premium music experience.">
+    <meta property="og:title" content="Chikoo Music - Premium Music Streaming">
+    <meta property="og:description" content="Stream trending Bollywood, English, Punjabi and global hits for free.">
+    <meta property="og:image" content="MARINE LOGO FINAL.png">
+    <meta property="og:url" content="https://chikoomusic.com">
     <title>Chikoo Music - Premium Music Streaming</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
@@ -142,7 +147,7 @@
                     <div class="report-form-container glass">
                         <p class="report-desc">Found a bug or have a suggestion? Let us know!</p>
                         <!-- Formspree endpoint placeholder -->
-                        <form id="report-form" action="mailto:mrchikoo31@outlook.com?subject=Music%20App%20Bug%20Report" method="POST" enctype="text/plain">
+                        <form id="report-form">
                             <div class="form-group">
                                 <label for="report-name">Name</label>
                                 <input type="text" id="report-name" name="Name" required placeholder="Your Name">
@@ -209,6 +214,7 @@
                             class="fa-solid fa-rotate-right"></i></button>
                     <button class="control-btn" id="repeat-btn" title="Repeat"><i
                             class="fa-solid fa-repeat"></i></button>
+                    <button class="control-btn glow-btn" id="auto-dj-btn" title="Auto-DJ" style="margin-left:10px; font-size: 0.9rem; padding: 0 10px; border-radius: 15px;"><i class="fa-solid fa-radio"></i> Auto-DJ</button>
                 </div>
                 <div class="progress-container">
                     <span id="time-current">0:00</span>
@@ -339,13 +345,14 @@
                 </div>
 
                 <div class="fs-controls">
-                    <button class="control-btn" id="fs-seek-bw-btn" title="Backward 10s"><i
-                            class="fa-solid fa-rotate-left"></i></button>
+                    <button class="control-btn" id="fs-shuffle-btn" title="Shuffle"><i class="fa-solid fa-shuffle"></i></button>
                     <button class="control-btn" id="fs-btn-prev"><i class="fa-solid fa-backward-step"></i></button>
                     <button class="control-btn play-btn" id="fs-btn-play"><i class="fa-solid fa-play"></i></button>
                     <button class="control-btn" id="fs-btn-next"><i class="fa-solid fa-forward-step"></i></button>
-                    <button class="control-btn" id="fs-seek-fw-btn" title="Forward 10s"><i
-                            class="fa-solid fa-rotate-right"></i></button>
+                    <button class="control-btn" id="fs-repeat-btn" title="Repeat"><i class="fa-solid fa-repeat"></i></button>
+                </div>
+                <div style="text-align:center; margin-top:15px;">
+                    <button class="control-btn glow-btn" id="fs-auto-dj-btn" title="Auto-DJ" style="font-size: 1rem; padding: 8px 15px; border-radius: 20px;"><i class="fa-solid fa-radio"></i> Genre Auto-DJ</button>
                 </div>
             </div>
         </div>
@@ -406,6 +413,46 @@
                 <button type="submit" class="action-btn primary auth-submit">Register</button>
                 <button type="button" class="action-btn auth-submit btn-maybe-later" style="background: transparent; color: var(--text-secondary); margin-top: 5px;">Maybe Later</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Genre Selection Modal -->
+    <div id="genre-modal" class="modal-overlay">
+        <div class="modal-content glass" style="text-align:center;">
+            <button class="close-modal" id="close-genre-modal"><i class="fa-solid fa-xmark"></i></button>
+            <h2>Start Genre Auto-DJ</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Endless playback of your favorite genre.</p>
+            <div class="genre-grid" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
+                <button class="action-btn glow-btn genre-btn" data-genre="bollywood">Bollywood</button>
+                <button class="action-btn glow-btn genre-btn" data-genre="pop">Pop</button>
+                <button class="action-btn glow-btn genre-btn" data-genre="lofi">Lo-Fi</button>
+                <button class="action-btn glow-btn genre-btn" data-genre="punjabi">Punjabi</button>
+                <button class="action-btn glow-btn genre-btn" data-genre="edm">EDM</button>
+                <button class="action-btn glow-btn genre-btn" data-genre="hiphop">Hip-Hop</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lyrics Modal -->
+    <div id="lyrics-modal" class="modal-overlay">
+        <div class="modal-content glass" style="max-width: 600px; height: 80vh; display: flex; flex-direction: column;">
+            <button class="close-modal" id="close-lyrics-modal"><i class="fa-solid fa-xmark"></i></button>
+            <h2 id="lyrics-title" style="margin-bottom: 5px;">Lyrics</h2>
+            <p id="lyrics-artist" style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.9rem;">-</p>
+            <div id="lyrics-content" style="flex: 1; overflow-y: auto; white-space: pre-wrap; font-size: 1.1rem; line-height: 1.8; padding-right: 10px; text-align: center;">
+                <div class="placeholder-text">Loading lyrics...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Queue Modal -->
+    <div id="queue-modal" class="modal-overlay">
+        <div class="modal-content glass" style="max-width: 500px; max-height: 80vh; display: flex; flex-direction: column;">
+            <button class="close-modal" id="close-queue-modal"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="margin-bottom: 20px;">Up Next</h2>
+            <div id="queue-list" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 10px;">
+                <div class="placeholder-text">Your queue is empty.</div>
+            </div>
         </div>
     </div>
 

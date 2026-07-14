@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
 // User Firebase config
 const firebaseConfig = {
@@ -103,10 +103,26 @@ document.addEventListener('DOMContentLoaded', () => {
         fsLikeBtn: document.getElementById('fs-like-btn'),
         fsAddPlaylistBtn: document.getElementById('fs-add-playlist-btn'),
         fsLyricsBtn: document.getElementById('fs-lyrics-btn'),
+        fsShuffleBtn: document.getElementById('fs-shuffle-btn'),
+        fsRepeatBtn: document.getElementById('fs-repeat-btn'),
+        fsAutoDjBtn: document.getElementById('fs-auto-dj-btn'),
+
+        // Lyrics & Queue Modals
+        lyricsModal: document.getElementById('lyrics-modal'),
+        closeLyricsModal: document.getElementById('close-lyrics-modal'),
+        lyricsTitle: document.getElementById('lyrics-title'),
+        lyricsArtist: document.getElementById('lyrics-artist'),
+        lyricsContent: document.getElementById('lyrics-content'),
+        queueModal: document.getElementById('queue-modal'),
+        closeQueueModal: document.getElementById('close-queue-modal'),
+        queueList: document.getElementById('queue-list'),
 
         // Actions
         btnFullscreen: document.getElementById('btn-fullscreen'),
         btnDownload: document.getElementById('btn-download'),
+        btnQueue: document.getElementById('btn-queue'),
+        fsQueueBtn: document.getElementById('fs-queue-btn'),
+        fsShareBtn: document.getElementById('fs-share-btn'),
 
         // Profile
         profileFabBtn: document.getElementById('profile-fab-btn'),
@@ -141,7 +157,12 @@ document.addEventListener('DOMContentLoaded', () => {
         tabRegister: document.getElementById('tab-register'),
         formLogin: document.getElementById('form-login'),
         formRegister: document.getElementById('form-register'),
-        navAdmin: document.getElementById('nav-admin')
+        navAdmin: document.getElementById('nav-admin'),
+        reportForm: document.getElementById('report-form'),
+        autoDjBtn: document.getElementById('auto-dj-btn'),
+        genreModal: document.getElementById('genre-modal'),
+        closeGenreModal: document.getElementById('close-genre-modal'),
+        genreBtns: document.querySelectorAll('.genre-btn')
     };
 
     // =============================================
@@ -959,18 +980,71 @@ document.addEventListener('DOMContentLoaded', () => {
         if (elements.shuffleBtn) {
             elements.shuffleBtn.classList.toggle('active', state.isShuffled);
         }
-        if (elements.repeatBtn) {
-            elements.repeatBtn.classList.remove('active');
-            if (state.repeatMode === 'all') {
-                elements.repeatBtn.classList.add('active');
-                elements.repeatBtn.innerHTML = '<i class="fa-solid fa-repeat"></i>';
-            } else if (state.repeatMode === 'one') {
-                elements.repeatBtn.classList.add('active');
-                elements.repeatBtn.innerHTML = '<i class="fa-solid fa-repeat"></i><span style="position:absolute;font-size:8px;font-weight:700;color:var(--accent-purple);">1</span>';
-            } else {
-                elements.repeatBtn.innerHTML = '<i class="fa-solid fa-repeat"></i>';
-            }
+        if (elements.fsShuffleBtn) {
+            elements.fsShuffleBtn.classList.toggle('active', state.isShuffled);
         }
+        
+        const setRepeatIcon = (btn, mode) => {
+            if (!btn) return;
+            btn.classList.remove('active');
+            if (mode === 'all') {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fa-solid fa-repeat"></i>';
+            } else if (mode === 'one') {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fa-solid fa-repeat"></i><span style="position:absolute;font-size:8px;font-weight:700;color:var(--accent-purple);">1</span>';
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-repeat"></i>';
+            }
+        };
+
+        setRepeatIcon(elements.repeatBtn, state.repeatMode);
+        setRepeatIcon(elements.fsRepeatBtn, state.repeatMode);
+    }
+
+    function renderQueueUI() {
+        if (!elements.queueList) return;
+        elements.queueList.innerHTML = '';
+        if (!state.queue || state.queue.length === 0) {
+            elements.queueList.innerHTML = '<div class="placeholder-text">Your queue is empty.</div>';
+            return;
+        }
+
+        state.queue.forEach((song, index) => {
+            const item = document.createElement('div');
+            item.className = 'queue-item';
+            if (index === state.currentIndex) {
+                item.classList.add('active');
+            }
+            
+            const image = song.image?.[song.image.length - 1]?.url || 'default-cover.jpg';
+            const artist = song.artists?.primary?.[0]?.name || 'Unknown Artist';
+            
+            item.innerHTML = `
+                <img src="${image}" alt="Cover">
+                <div class="queue-item-info">
+                    <div class="queue-item-title">${song.name}</div>
+                    <div class="queue-item-artist">${artist}</div>
+                </div>
+                ${index === state.currentIndex ? '<div class="queue-item-icon"><i class="fa-solid fa-volume-high"></i></div>' : ''}
+            `;
+            
+            item.addEventListener('click', () => {
+                state.currentIndex = index;
+                playSong(song);
+                elements.queueModal.classList.remove('open');
+            });
+            
+            elements.queueList.appendChild(item);
+        });
+        
+        // Scroll to active item
+        setTimeout(() => {
+            const activeItem = elements.queueList.querySelector('.queue-item.active');
+            if (activeItem) {
+                activeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 50);
     }
 
     // =============================================
@@ -1265,10 +1339,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // --- SOUND TOGGLE (Profile Video) using Event Delegation ---
-        document.body.addEventListener('click', (e) => {
-            const soundToggleBtn = e.target.closest('#sound-toggle-btn');
-            if (soundToggleBtn && elements.bannerVideo) {
+        // --- SOUND TOGGLE (Profile Video) ---
+        if (elements.soundToggleBtn && elements.bannerVideo) {
+            elements.soundToggleBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 e.preventDefault();
 
@@ -1277,20 +1350,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 elements.bannerVideo.muted = isProfileVideoMuted;
 
                 // Update UI to reflect the NEW state
-                const icon = soundToggleBtn.querySelector('i');
-                const text = soundToggleBtn.querySelector('span');
+                const icon = elements.soundToggleBtn.querySelector('i');
+                const text = elements.soundToggleBtn.querySelector('span');
                 
                 if (isProfileVideoMuted) {
                     icon.className = 'fa-solid fa-volume-xmark';
                     text.textContent = 'Sound off';
-                    showToast('Video muted');
+                    showToast('Video Muted');
                 } else {
                     icon.className = 'fa-solid fa-volume-high';
                     text.textContent = 'Sound on';
-                    showToast('Video unmuted');
+                    showToast('Video Unmuted');
                 }
-            }
-        });
+            });
+        }
 
         // --- Search ---
         let searchTimeout;
@@ -1435,7 +1508,54 @@ document.addEventListener('DOMContentLoaded', () => {
         if (elements.btnDownload) {
             elements.btnDownload.addEventListener('click', (e) => {
                 e.preventDefault();
+                if (!state.token) {
+                    if (elements.authModal) elements.authModal.classList.add('open');
+                    showToast('Please login or register to download songs.');
+                    return;
+                }
                 downloadCurrentSong();
+            });
+        }
+
+        // --- Auth Button ---
+        if (elements.authBtn) {
+            elements.authBtn.addEventListener('click', () => {
+                if (!state.token && elements.authModal) {
+                    elements.authModal.classList.add('open');
+                } else if (state.token) {
+                    showToast(`Logged in as ${state.user?.username || 'User'}`);
+                }
+            });
+        }
+
+        // --- Queue & Share ---
+        const openQueueModal = () => {
+            if (elements.queueModal) {
+                elements.queueModal.classList.add('open');
+                renderQueueUI();
+            }
+        };
+        if (elements.btnQueue) elements.btnQueue.addEventListener('click', openQueueModal);
+        if (elements.fsQueueBtn) elements.fsQueueBtn.addEventListener('click', openQueueModal);
+        if (elements.closeQueueModal) {
+            elements.closeQueueModal.addEventListener('click', () => {
+                elements.queueModal.classList.remove('open');
+            });
+        }
+        
+        if (elements.fsShareBtn) {
+            elements.fsShareBtn.addEventListener('click', () => {
+                if (navigator.share && state.currentSong) {
+                    navigator.share({
+                        title: 'Chikoo Music',
+                        text: `Listen to ${state.currentSong.name} on Chikoo Music!`,
+                        url: window.location.href
+                    }).catch(() => {
+                        showToast('Link copied or share dismissed.');
+                    });
+                } else {
+                    showToast('Share feature is not supported on your browser.');
+                }
             });
         }
 
@@ -1459,23 +1579,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (elements.fsLyricsBtn) {
-            elements.fsLyricsBtn.addEventListener('click', () => {
-                showToast('Lyrics feature is coming soon!');
+            elements.fsLyricsBtn.addEventListener('click', async () => {
+                if (!state.currentSong) return;
+                elements.lyricsModal.classList.add('open');
+                elements.lyricsTitle.textContent = state.currentSong.name;
+                const artistName = state.currentSong.artists?.primary?.[0]?.name || '';
+                elements.lyricsArtist.textContent = artistName;
+                elements.lyricsContent.innerHTML = '<div class="placeholder-text"><i class="fa-solid fa-spinner fa-spin"></i> Fetching lyrics...</div>';
+                
+                try {
+                    const response = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(artistName)}/${encodeURIComponent(state.currentSong.name)}`);
+                    const data = await response.json();
+                    if (data.lyrics) {
+                        elements.lyricsContent.textContent = data.lyrics;
+                    } else {
+                        elements.lyricsContent.innerHTML = '<div class="placeholder-text">Lyrics not found for this song.</div>';
+                    }
+                } catch (error) {
+                    elements.lyricsContent.innerHTML = '<div class="placeholder-text">Failed to fetch lyrics. Please try again later.</div>';
+                }
+            });
+        }
+        if (elements.closeLyricsModal) {
+            elements.closeLyricsModal.addEventListener('click', () => {
+                elements.lyricsModal.classList.remove('open');
             });
         }
 
         // --- Player Controls ---
         elements.playBtn.addEventListener('click', togglePlay);
-        if (elements.fsPlayBtn) elements.fsPlayBtn.addEventListener('click', togglePlay);
-
         elements.nextBtn.addEventListener('click', playNext);
-        if (elements.fsNextBtn) elements.fsNextBtn.addEventListener('click', playNext);
-
         elements.prevBtn.addEventListener('click', playPrev);
+        if (elements.fsPlayBtn) elements.fsPlayBtn.addEventListener('click', togglePlay);
+        if (elements.fsNextBtn) elements.fsNextBtn.addEventListener('click', playNext);
         if (elements.fsPrevBtn) elements.fsPrevBtn.addEventListener('click', playPrev);
 
         if (elements.shuffleBtn) elements.shuffleBtn.addEventListener('click', toggleShuffle);
+        if (elements.fsShuffleBtn) elements.fsShuffleBtn.addEventListener('click', toggleShuffle);
         if (elements.repeatBtn) elements.repeatBtn.addEventListener('click', toggleRepeat);
+        if (elements.fsRepeatBtn) elements.fsRepeatBtn.addEventListener('click', toggleRepeat);
 
         if (elements.seekBwBtn) elements.seekBwBtn.addEventListener('click', () => {
             elements.audio.currentTime = Math.max(0, elements.audio.currentTime - 10);
@@ -1499,6 +1641,7 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.volumeIcon.addEventListener('click', toggleMute);
         }
 
+        // --- Progress / Time Update ---
         // --- Progress / Time Update ---
         elements.audio.addEventListener('timeupdate', () => {
             const current = elements.audio.currentTime;
@@ -1578,12 +1721,101 @@ document.addEventListener('DOMContentLoaded', () => {
             // Auto prompt login if not logged in
             if (!state.token) {
                 setTimeout(() => {
-                    if (elements.authModal && !document.querySelector('.auth-modal.open')) {
+                    if (elements.authModal && !elements.authModal.classList.contains('open')) {
                         elements.authModal.classList.add('open');
                     }
                 }, 500);
             }
         }
+    }
+
+    // =============================================
+    // REPORT & GENRE AUTO-DJ
+    // =============================================
+    if (elements.reportForm) {
+        elements.reportForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('report-name').value;
+            const email = document.getElementById('report-email').value;
+            const message = document.getElementById('report-message').value;
+            
+            const submitBtn = elements.reportForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+            submitBtn.disabled = true;
+            
+            try {
+                // Using formsubmit.co to send email directly without leaving the app
+                const response = await fetch("https://formsubmit.co/ajax/mrchikoo31@outlook.com", {
+                    method: "POST",
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        message: message,
+                        _subject: "New Bug Report / Suggestion for Chikoo Music!"
+                    })
+                });
+
+                if (response.ok) {
+                    showToast('Report submitted successfully. Thank you!');
+                    elements.reportForm.reset();
+                } else {
+                    throw new Error('FormSubmit error');
+                }
+            } catch (error) {
+                console.error("Error sending email: ", error);
+                showToast('Failed to submit report. Try again later.');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+    }
+
+    const openGenreModal = () => {
+        if (elements.genreModal) elements.genreModal.classList.add('open');
+    };
+    if (elements.autoDjBtn) elements.autoDjBtn.addEventListener('click', openGenreModal);
+    if (elements.fsAutoDjBtn) elements.fsAutoDjBtn.addEventListener('click', () => {
+        if (elements.fsPlayer) elements.fsPlayer.classList.remove('open');
+        openGenreModal();
+    });
+    
+    if (elements.closeGenreModal) {
+        elements.closeGenreModal.addEventListener('click', () => {
+            elements.genreModal.classList.remove('open');
+        });
+    }
+    
+    if (elements.genreBtns) {
+        elements.genreBtns.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const genre = e.target.getAttribute('data-genre');
+                elements.genreModal.classList.remove('open');
+                showToast(`Starting Auto-DJ for ${genre}...`);
+                
+                try {
+                    const songs = await AirbeatsAPI.searchSongs(genre + ' songs', 50);
+                    if (songs && songs.length > 0) {
+                        state.queue = songs;
+                        state.currentIndex = 0;
+                        state.isShuffled = true;
+                        syncShuffleRepeatUI();
+                        playSong(state.queue[state.currentIndex]);
+                        showToast(`Playing ${songs.length} ${genre} tracks!`);
+                    } else {
+                        showToast(`Could not find songs for ${genre}.`);
+                    }
+                } catch (error) {
+                    showToast('Failed to start Auto-DJ.');
+                }
+            });
+        });
     }
 
     async function handleLogin(e) {

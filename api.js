@@ -39,7 +39,21 @@ class AirbeatsAPI {
     }
 
     static async getTrendingSongs() {
-        return this.searchSongs('top trending in 2026', 20);
+        const results = await this.searchSongs('latest trending hindi bollywood', 50);
+        const unique = [];
+        const seen = new Set();
+        for (const song of results) {
+            // Uniqueness based on song name AND primary artist to avoid duplicate thumbnails for remixes/versions
+            const name = song.name.toLowerCase().trim();
+            const artist = song.artists?.primary?.[0]?.name?.toLowerCase().trim() || '';
+            const uniqueKey = `${name}-${artist}`;
+            
+            if (!seen.has(uniqueKey)) {
+                seen.add(uniqueKey);
+                unique.push(song);
+            }
+        }
+        return unique.slice(0, 20);
     }
 
     static async getSongDetails(id) {
