@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const snap = await getDoc(configRef);
             if (snap.exists()) {
                 const data = snap.data();
-                if (data.broadcastMessage) {
+                if (data.broadcastMessage && localStorage.getItem('closedBroadcast') !== data.broadcastMessage) {
                     const banner = document.getElementById('broadcast-banner');
                     const text = document.getElementById('broadcast-message-text');
                     const closeBtn = document.getElementById('close-broadcast-btn');
@@ -262,9 +262,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         text.textContent = data.broadcastMessage;
                         banner.style.display = 'flex';
                         if (closeBtn) {
-                            closeBtn.addEventListener('click', () => {
+                            closeBtn.onclick = () => {
                                 banner.style.display = 'none';
-                            });
+                                localStorage.setItem('closedBroadcast', data.broadcastMessage);
+                            };
                         }
                     }
                 }
@@ -1982,6 +1983,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 totalLikedSongs += (data.likedSongs ? data.likedSongs.length : 0);
                 
                 usersList.push({
+                    uid: doc.id,
                     username: data.username || 'Unknown',
                     role: data.role || 'user',
                     email: data.email || 'No email',
@@ -2009,9 +2011,17 @@ document.addEventListener('DOMContentLoaded', () => {
             
             container.innerHTML = html;
             
-            usersList.slice(0, 50).forEach(user => {
+            usersList.forEach(user => {
                 const card = document.createElement('div');
                 card.className = 'admin-card';
+                
+                let actionHtml = '';
+                if (user.role !== 'owner' && user.role !== 'admin') {
+                    actionHtml = `<button class="make-admin-btn" data-uid="${user.uid}" style="padding: 5px 10px; background: rgba(183,33,255,0.2); border: 1px solid var(--accent-purple); color: white; border-radius: 4px; cursor: pointer; margin-top: 10px; font-size: 12px;">Make Admin</button>`;
+                } else if (user.role === 'admin') {
+                    actionHtml = `<button class="revoke-admin-btn" data-uid="${user.uid}" style="padding: 5px 10px; background: rgba(255,50,50,0.2); border: 1px solid red; color: white; border-radius: 4px; cursor: pointer; margin-top: 10px; font-size: 12px;">Revoke Admin</button>`;
+                }
+
                 card.innerHTML = `
                     <div class="user-info">
                         <div class="user-avatar">${user.username.charAt(0).toUpperCase()}</div>
@@ -2020,8 +2030,30 @@ document.addEventListener('DOMContentLoaded', () => {
                             <small>${user.email}</small>
                         </div>
                     </div>
-                    <p><strong>Custom Playlists:</strong> ${user.playlists}</p>
+                    <p style="margin-bottom: 5px;"><strong>Custom Playlists:</strong> ${user.playlists}</p>
+                    ${actionHtml}
                 `;
+                
+                const btn = card.querySelector('button');
+                if (btn) {
+                    btn.onclick = async () => {
+                        btn.disabled = true;
+                        btn.textContent = 'Updating...';
+                        const newRole = btn.classList.contains('make-admin-btn') ? 'admin' : 'user';
+                        try {
+                            // Ensure db, doc, setDoc are accessible here. They are imported at the top of app.js.
+                            const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
+                            await setDoc(doc(db, 'users', user.uid), { role: newRole }, { merge: true });
+                            showToast(\`User role updated to \${newRole}!\`);
+                            loadAdminData(); // Refresh the list
+                        } catch (err) {
+                            showToast('Failed to update role: ' + err.message);
+                            btn.disabled = false;
+                            btn.textContent = newRole === 'admin' ? 'Make Admin' : 'Revoke Admin';
+                        }
+                    };
+                }
+                
                 container.appendChild(card);
             });
         } catch (error) {
