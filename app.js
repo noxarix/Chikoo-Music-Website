@@ -179,7 +179,14 @@ document.addEventListener('DOMContentLoaded', () => {
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     state.token = user.uid;
-                    state.user = { username: user.displayName || 'User', email: user.email, role: 'user' };
+                    let role = 'user';
+                    const uName = user.displayName || 'User';
+                    
+                    if (user.email === 'mrchikoo31@gmail.com' || uName.toLowerCase() === 'nox_shadowx') {
+                        role = 'owner';
+                    }
+                    
+                    state.user = { username: uName, email: user.email, role: role };
                     // Fetch data from Firestore
                     if (db) {
                         try {
@@ -189,8 +196,19 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const data = userSnap.data();
                                 if (data.likedSongs) state.likedSongs = data.likedSongs;
                                 if (data.customPlaylists) state.customPlaylists = data.customPlaylists;
-                                saveState();
+                                if (data.role === 'owner') role = 'owner';
                             }
+                            
+                            // Save updated role and state
+                            await setDoc(userRef, {
+                                username: uName,
+                                email: user.email,
+                                role: role,
+                                likedSongs: state.likedSongs,
+                                customPlaylists: state.customPlaylists
+                            }, { merge: true });
+                            
+                            state.user.role = role;
                         } catch(e) {
                             console.warn("Failed to fetch from Firestore", e);
                         }
@@ -1925,7 +1943,21 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const userCred = await createUserWithEmailAndPassword(auth, email, password);
             await updateProfile(userCred.user, { displayName: username });
+            
+            let role = 'user';
+            if (email === 'mrchikoo31@gmail.com' || username.toLowerCase() === 'nox_shadowx') {
+                role = 'owner';
+            }
+            if (db) {
+                await setDoc(doc(db, 'users', userCred.user.uid), {
+                    username: username,
+                    email: email,
+                    role: role
+                }, { merge: true });
+            }
+            
             showToast('Registered successfully!');
+            setTimeout(() => window.location.reload(), 1500);
         } catch (error) {
             showToast('Registration failed: ' + error.message);
         }
