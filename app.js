@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, addDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
 // User Firebase config
 const firebaseConfig = {
@@ -1935,36 +1935,74 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!state.token || state.user?.role !== 'owner') return;
         
         const container = document.getElementById('admin-content');
-        container.innerHTML = '<div class="placeholder-text">Loading data...</div>';
+        container.innerHTML = '<div class="placeholder-text">Loading admin statistics...</div>';
         
+        if (!db) {
+            container.innerHTML = '<div class="placeholder-text">Database not connected</div>';
+            return;
+        }
+
         try {
-            const res = await fetch('/api/admin/data', {
-                headers: { 'Authorization': `Bearer ${state.token}` }
-            });
-            const data = await res.json();
+            const usersRef = collection(db, 'users');
+            const usersSnap = await getDocs(usersRef);
             
-            if (data.success) {
-                container.innerHTML = '';
-                data.users.forEach(user => {
-                    const card = document.createElement('div');
-                    card.className = 'admin-card';
-                    card.innerHTML = `
-                        <div class="user-info">
-                            <div class="user-avatar">${user.username.charAt(0).toUpperCase()}</div>
-                            <div>
-                                <strong>${user.username}</strong> (${user.role})<br>
-                                <small>${user.email}</small>
-                            </div>
-                        </div>
-                        <p><strong>Custom Playlists:</strong> ${user.customPlaylists?.length || 0}</p>
-                    `;
-                    container.appendChild(card);
+            let totalUsers = 0;
+            let totalPlaylists = 0;
+            let totalLikedSongs = 0;
+            
+            const usersList = [];
+
+            usersSnap.forEach(doc => {
+                const data = doc.data();
+                totalUsers++;
+                totalPlaylists += (data.customPlaylists ? data.customPlaylists.length : 0);
+                totalLikedSongs += (data.likedSongs ? data.likedSongs.length : 0);
+                
+                usersList.push({
+                    username: data.username || 'Unknown',
+                    role: data.role || 'user',
+                    email: data.email || 'No email',
+                    playlists: data.customPlaylists ? data.customPlaylists.length : 0
                 });
-            } else {
-                container.innerHTML = `<div class="placeholder-text">Failed to load: ${data.message}</div>`;
-            }
+            });
+            
+            let html = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                    <div style="background: rgba(183, 33, 255, 0.1); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border); text-align: center;">
+                        <h2 style="font-size: 28px; margin: 0; color: var(--accent-purple);">${totalUsers}</h2>
+                        <p style="margin: 5px 0 0; font-size: 14px; color: var(--text-secondary);">Total Users</p>
+                    </div>
+                    <div style="background: rgba(183, 33, 255, 0.1); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border); text-align: center;">
+                        <h2 style="font-size: 28px; margin: 0; color: var(--accent-purple);">${totalPlaylists}</h2>
+                        <p style="margin: 5px 0 0; font-size: 14px; color: var(--text-secondary);">Playlists Created</p>
+                    </div>
+                    <div style="background: rgba(183, 33, 255, 0.1); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border); text-align: center;">
+                        <h2 style="font-size: 28px; margin: 0; color: var(--accent-purple);">${totalLikedSongs}</h2>
+                        <p style="margin: 5px 0 0; font-size: 14px; color: var(--text-secondary);">Liked Songs</p>
+                    </div>
+                </div>
+                <h3 style="margin-bottom: 15px; color: white;">Recent Users</h3>
+            `;
+            
+            container.innerHTML = html;
+            
+            usersList.slice(0, 50).forEach(user => {
+                const card = document.createElement('div');
+                card.className = 'admin-card';
+                card.innerHTML = `
+                    <div class="user-info">
+                        <div class="user-avatar">${user.username.charAt(0).toUpperCase()}</div>
+                        <div>
+                            <strong>${user.username}</strong> (${user.role})<br>
+                            <small>${user.email}</small>
+                        </div>
+                    </div>
+                    <p><strong>Custom Playlists:</strong> ${user.playlists}</p>
+                `;
+                container.appendChild(card);
+            });
         } catch (error) {
-            container.innerHTML = '<div class="placeholder-text">Server error</div>';
+            container.innerHTML = `<div class="placeholder-text">Failed to load stats: ${error.message}</div>`;
         }
     }
 
