@@ -12,7 +12,7 @@
     <meta property="og:image" content="MARINE LOGO FINAL.png">
     <meta property="og:url" content="https://chikoomusic.com">
     <title>Chikoo Music - Premium Music Streaming</title>
-    <link rel="stylesheet" href="style.css?v=1783993040950">
+    <link rel="stylesheet" href="style.css?v=1783995359411">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="icon" type="image/png" href="MARINE LOGO FINAL.png">
@@ -62,6 +62,14 @@
                     </div>
                 </div>
             </header>
+
+            <div id="broadcast-banner" style="display: none; background: rgba(183, 33, 255, 0.2); border-bottom: 1px solid rgba(183, 33, 255, 0.4); padding: 10px 20px; color: var(--text-primary); align-items: center; justify-content: space-between; font-size: 14px; font-weight: 500;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-bullhorn" style="color: var(--accent-purple);"></i>
+                    <span id="broadcast-message-text"></span>
+                </div>
+                <button id="close-broadcast-btn" style="background: none; border: none; color: var(--text-secondary); cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
 
             <div id="content-area" class="page-content">
                 <!-- Dynamic Content Injected Here -->
@@ -176,8 +184,17 @@
                             <p class="playlist-meta" id="admin-meta">Owner Access Only</p>
                         </div>
                     </div>
-                    <div class="admin-controls" style="margin: 20px 0;">
-                        <button class="action-btn primary" id="btn-refresh-admin"><i class="fa-solid fa-arrows-rotate"></i> Refresh Data</button>
+                    <div class="admin-controls" style="margin: 20px 0; display: flex; flex-direction: column; gap: 15px;">
+                        <div>
+                            <button class="action-btn primary" id="btn-refresh-admin"><i class="fa-solid fa-arrows-rotate"></i> Refresh Data</button>
+                        </div>
+                        <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 12px; border: 1px solid var(--glass-border);">
+                            <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; color: var(--accent-purple);">Global Broadcast</h3>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="broadcast-input" placeholder="Type a message to show to all users..." style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0,0,0,0.2); color: white; outline: none;">
+                                <button class="action-btn primary" id="btn-send-broadcast"><i class="fa-solid fa-paper-plane"></i> Send</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="admin-content" id="admin-content">
                         <!-- Admin data injected here -->
@@ -392,6 +409,9 @@
                     <i class="fa-solid fa-lock"></i>
                     <input type="password" id="login-password" placeholder="Password" required>
                 </div>
+                <div style="text-align: right; margin-top: -5px;">
+                    <button type="button" id="btn-forgot-password" style="background: none; border: none; color: var(--accent-purple); font-size: 13px; cursor: pointer;">Forgot Password?</button>
+                </div>
                 <button type="submit" class="action-btn primary auth-submit">Log In</button>
                 <button type="button" class="action-btn auth-submit btn-maybe-later" style="background: transparent; color: var(--text-secondary); margin-top: 5px;">Maybe Later</button>
             </form>
@@ -456,7 +476,7 @@
         </div>
     </div>
 
-    <script src="api.js?v=1783992332224"></script>
-    <script type="module" src="app.js?v=1783992332224"></script>
+    <script src="api.js?v=1783995359411"></script>
+    <script type="module" src="app.js?v=1783995359411"></script>
 </body>
 </html>

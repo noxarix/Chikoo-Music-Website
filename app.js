@@ -173,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function init() {
         loadPersistedState();
+        fetchGlobalBroadcast();
         
         if (auth) {
             onAuthStateChanged(auth, async (user) => {
@@ -225,6 +226,33 @@ document.addEventListener('DOMContentLoaded', () => {
             await handleImportPlaylist(urlParams.get('pname'), urlParams.get('psongs'));
             // Remove params from URL so it doesn't re-import on refresh
             window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }
+
+    async function fetchGlobalBroadcast() {
+        if (!db) return;
+        try {
+            const configRef = doc(db, 'global', 'config');
+            const snap = await getDoc(configRef);
+            if (snap.exists()) {
+                const data = snap.data();
+                if (data.broadcastMessage) {
+                    const banner = document.getElementById('broadcast-banner');
+                    const text = document.getElementById('broadcast-message-text');
+                    const closeBtn = document.getElementById('close-broadcast-btn');
+                    if (banner && text) {
+                        text.textContent = data.broadcastMessage;
+                        banner.style.display = 'flex';
+                        if (closeBtn) {
+                            closeBtn.addEventListener('click', () => {
+                                banner.style.display = 'none';
+                            });
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn("Could not fetch broadcast", e);
         }
     }
 
@@ -1273,6 +1301,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const adminBtn = document.getElementById('btn-refresh-admin');
         if (adminBtn) adminBtn.addEventListener('click', loadAdminData);
 
+        const btnSendBroadcast = document.getElementById('btn-send-broadcast');
+        if (btnSendBroadcast) {
+            btnSendBroadcast.addEventListener('click', async () => {
+                const input = document.getElementById('broadcast-input');
+                if (!input.value) return;
+                try {
+                    await setDoc(doc(db, 'global', 'config'), { broadcastMessage: input.value }, { merge: true });
+                    showToast('Broadcast sent successfully!');
+                    input.value = '';
+                } catch (e) {
+                    showToast('Failed to send broadcast');
+                }
+            });
+        }
+
         // --- Trending Filters ---
         const filterBtns = document.querySelectorAll('#trending-filters .filter-btn');
         filterBtns.forEach(btn => {
@@ -1808,13 +1851,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 try {
                     const songs = await AirbeatsAPI.searchSongs(genre + ' songs', 50);
-                    if (songs && songs.length > 0) {
-                        state.queue = songs;
+                    
+                    const unique = [];
+                    const seen = new Set();
+                    if (songs) {
+                        for (const song of songs) {
+                            const name = song.name.toLowerCase().trim();
+                            const artist = song.artists?.primary?.[0]?.name?.toLowerCase().trim() || '';
+                            const uniqueKey = `${name}-${artist}`;
+                            if (!seen.has(uniqueKey)) {
+                                seen.add(uniqueKey);
+                                unique.push(song);
+                            }
+                        }
+                    }
+
+                    if (unique.length > 0) {
+                        state.queue = unique;
                         state.currentIndex = 0;
                         state.isShuffled = true;
                         syncShuffleRepeatUI();
                         playSong(state.queue[state.currentIndex]);
-                        showToast(`Playing ${songs.length} ${genre} tracks!`);
+                        showToast(`Playing ${unique.length} ${genre} tracks!`);
                     } else {
                         showToast(`Could not find songs for ${genre}.`);
                     }
