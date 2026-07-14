@@ -1803,15 +1803,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             elements.authBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Login / Register`;
             if (elements.navAdmin) elements.navAdmin.style.display = 'none';
-            
-            // Auto prompt login if not logged in
-            if (!state.token) {
-                setTimeout(() => {
-                    if (elements.authModal && !elements.authModal.classList.contains('open')) {
-                        elements.authModal.classList.add('open');
-                    }
-                }, 500);
-            }
         }
     }
 
