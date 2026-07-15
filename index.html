@@ -21,13 +21,24 @@
 
 <body>
     <div class="app-container">
-        <!-- Sidebar Navigation -->
-        <nav class="sidebar">
+        <!-- Top Navigation Bar -->
+        <nav class="top-navbar">
             <div class="logo">
                 <img src="MARINE LOGO FINAL.png" alt="Logo" class="brand-logo">
                 <span>ᴄʜɪᴋᴏᴏ ✘ ᴍᴜsɪᴄ</span>
             </div>
+            <div class="search-bar-container">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="search-input" placeholder="Search songs...">
+            </div>
+            <div class="nav-actions">
+                <button id="auto-dj-nav-btn" class="nav-icon-btn" title="Auto DJ"><i class="fa-solid fa-infinity"></i></button>
+                <button id="hamburger-btn" class="nav-icon-btn"><i class="fa-solid fa-bars"></i></button>
+            </div>
+        </nav>
 
+        <!-- Dropdown Menu -->
+        <div id="dropdown-menu" class="dropdown-menu glass">
             <ul class="nav-links">
                 <li class="active" data-page="home"><i class="fa-solid fa-house"></i> Discover</li>
                 <li data-page="search"><i class="fa-solid fa-magnifying-glass"></i> Search</li>
@@ -37,31 +48,18 @@
                 <li data-page="report"><i class="fa-solid fa-circle-exclamation"></i> Report Issue</li>
                 <li data-page="admin" id="nav-admin" style="display: none; color: var(--accent-purple);"><i class="fa-solid fa-shield-halved"></i> Admin Panel</li>
             </ul>
-
-            <div class="sidebar-footer">
+            <div class="dropdown-footer">
                 <button id="auth-btn" class="auth-btn">
                     <i class="fa-solid fa-right-to-bracket"></i> Login / Register
                 </button>
-            </div>
-
-            <div class="theme-toggle">
-                <button id="theme-btn" title="Toggle Theme">
-                    <i class="fa-solid fa-moon"></i>
+                <button id="theme-btn" class="theme-btn">
+                    <i class="fa-solid fa-moon"></i> <span id="theme-text">Light Mode</span>
                 </button>
             </div>
-        </nav>
+        </div>
 
         <!-- Main Content Area -->
         <main class="main-content">
-            <header class="top-bar">
-                <div class="search-bar-container">
-                    <i class="fa-solid fa-search"></i>
-                    <input type="text" id="search-input" placeholder="Search for songs, artists, albums...">
-                    <div class="search-shortcut">
-                        <kbd>Ctrl</kbd><kbd>K</kbd>
-                    </div>
-                </div>
-            </header>
 
             <div id="broadcast-banner" style="display: none; background: rgba(183, 33, 255, 0.2); border-bottom: 1px solid rgba(183, 33, 255, 0.4); padding: 10px 20px; color: var(--text-primary); align-items: center; justify-content: space-between; font-size: 14px; font-weight: 500;">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -77,14 +75,35 @@
                     <div class="spinner"></div>
                 </div>
                 <div id="view-home" class="view active">
-                    <h1 class="page-title">Top Trending</h1>
-                    <div class="trending-filters" id="trending-filters">
-                        <button class="filter-btn active" data-query="hindi romantic songs">Hindi</button>
-                        <button class="filter-btn" data-query="english pop hits">English</button>
-                        <button class="filter-btn" data-query="latest punjabi songs">Punjabi</button>
-                        <button class="filter-btn" data-query="global top 50">Global</button>
+                    <!-- Hero Banner -->
+                    <div class="hero-banner" id="hero-banner">
+                        <div class="hero-bg" id="hero-bg"></div>
+                        <div class="hero-content">
+                            <div class="hero-image-container">
+                                <img src="MARINE LOGO FINAL.png" alt="Featured Cover" id="hero-image">
+                                <div class="hero-music-icon"><i class="fa-solid fa-music"></i></div>
+                            </div>
+                            <div class="hero-details">
+                                <span class="hero-badge"><i class="fa-solid fa-crown"></i> MOST PLAYED</span>
+                                <h1 class="hero-title" id="hero-title">Loading...</h1>
+                                <p class="hero-artist" id="hero-artist"><span id="hero-artist-name">-</span> <i class="fa-solid fa-heart" style="color: var(--accent-red); font-size: 0.8rem;"></i></p>
+                                <button class="hero-play-btn glow-btn" id="hero-play-btn"><i class="fa-solid fa-play"></i> Open Player</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="cards-grid" id="trending-grid">
+
+                    <h2 class="section-title"><i class="fa-solid fa-chart-line" style="color: #a0d841;"></i> TRENDING NOW</h2>
+                    <div class="cards-grid horizontal-scroll" id="trending-grid">
+                        <!-- Cards / Skeletons injected by JS -->
+                    </div>
+
+                    <h2 class="section-title" style="margin-top: 30px;"><i class="fa-solid fa-fire" style="color: #ff4757;"></i> NEWLY RELEASED</h2>
+                    <div class="cards-grid horizontal-scroll" id="new-released-grid">
+                        <!-- Cards / Skeletons injected by JS -->
+                    </div>
+
+                    <h2 class="section-title" style="margin-top: 30px;"><i class="fa-solid fa-users" style="color: #2ed573;"></i> TOP ARTISTS HITS</h2>
+                    <div class="cards-grid horizontal-scroll" id="top-artists-grid">
                         <!-- Cards / Skeletons injected by JS -->
                     </div>
                 </div>
@@ -469,7 +488,10 @@
     <div id="queue-modal" class="modal-overlay">
         <div class="modal-content glass" style="max-width: 500px; max-height: 80vh; display: flex; flex-direction: column;">
             <button class="close-modal" id="close-queue-modal"><i class="fa-solid fa-xmark"></i></button>
-            <h2 style="margin-bottom: 20px;">Up Next</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;">Up Next</h2>
+                <button id="clear-queue-btn" class="action-btn" style="font-size: 14px; padding: 5px 10px; border-radius: 8px; background: rgba(255, 50, 50, 0.2); border: 1px solid rgba(255, 50, 50, 0.4); color: white;"><i class="fa-solid fa-trash"></i> Clear</button>
+            </div>
             <div id="queue-list" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 10px;">
                 <div class="placeholder-text">Your queue is empty.</div>
             </div>

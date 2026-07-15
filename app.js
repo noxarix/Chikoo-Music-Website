@@ -54,12 +54,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     const elements = {
         // Layout
-        sidebar: document.querySelector('.sidebar'),
         navLinks: document.querySelectorAll('.nav-links li'),
         views: document.querySelectorAll('.view'),
         themeToggle: document.getElementById('theme-btn'),
         themeIcon: document.querySelector('#theme-btn i'),
+        themeText: document.getElementById('theme-text'),
         loader: document.getElementById('main-loader'),
+        hamburgerBtn: document.getElementById('hamburger-btn'),
+        dropdownMenu: document.getElementById('dropdown-menu'),
+        autoDjNavBtn: document.getElementById('auto-dj-nav-btn'),
+
+        // Hero Banner
+        heroBanner: document.getElementById('hero-banner'),
+        heroBg: document.getElementById('hero-bg'),
+        heroImage: document.getElementById('hero-image'),
+        heroTitle: document.getElementById('hero-title'),
+        heroArtistName: document.getElementById('hero-artist-name'),
+        heroPlayBtn: document.getElementById('hero-play-btn'),
 
         // Player
         audio: document.getElementById('audio-player'),
@@ -135,6 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Content
         trendingGrid: document.getElementById('trending-grid'),
+        newReleasedGrid: document.getElementById('new-released-grid'),
+        topArtistsGrid: document.getElementById('top-artists-grid'),
         searchInput: document.getElementById('search-input'),
         searchResults: document.getElementById('search-grid'),
         likedSongsList: document.getElementById('liked-songs-list'),
@@ -231,10 +244,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Show skeleton loaders while fetching
         showSkeletons(elements.trendingGrid, 10);
+        if (elements.newReleasedGrid) showSkeletons(elements.newReleasedGrid, 10);
+        if (elements.topArtistsGrid) showSkeletons(elements.topArtistsGrid, 10);
 
         // Load trending songs
         const trending = await AirbeatsAPI.getTrendingSongs();
         renderSongs(trending, elements.trendingGrid);
+
+        // Populate Hero Banner with #1 Trending
+        if (trending && trending.length > 0 && elements.heroBanner) {
+            const heroSong = trending[0];
+            const image = heroSong.image?.[heroSong.image.length - 1]?.url || 'MARINE LOGO FINAL.png';
+            const artist = heroSong.artists?.primary?.[0]?.name || 'Unknown Artist';
+            elements.heroBg.style.backgroundImage = `url('${image}')`;
+            elements.heroImage.src = image;
+            elements.heroTitle.textContent = heroSong.name;
+            elements.heroArtistName.textContent = artist;
+            
+            elements.heroPlayBtn.onclick = () => {
+                state.queue = [heroSong];
+                state.currentIndex = 0;
+                playSong(heroSong);
+            };
+        } else if (elements.heroBanner) {
+            elements.heroBanner.style.display = 'none';
+        }
+
+        // Load New Releases
+        if (elements.newReleasedGrid) {
+            AirbeatsAPI.searchSongs('latest new songs', 20).then(newSongs => {
+                renderSongs(newSongs, elements.newReleasedGrid);
+            });
+        }
+
+        // Load Top Artists Hits
+        if (elements.topArtistsGrid) {
+            AirbeatsAPI.searchSongs('best artist hits', 20).then(artistSongs => {
+                renderSongs(artistSongs, elements.topArtistsGrid);
+            });
+        }
 
         loadDownloads();
         
@@ -1075,7 +1123,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="queue-item-artist">${artist}</div>
                 </div>
                 ${index === state.currentIndex ? '<div class="queue-item-icon"><i class="fa-solid fa-volume-high"></i></div>' : ''}
+                <button class="queue-item-delete" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 5px; margin-left: auto;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             `;
+            
+            const deleteBtn = item.querySelector('.queue-item-delete');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    state.queue.splice(index, 1);
+                    if (state.currentIndex === index) {
+                        if (state.queue.length > 0) {
+                            if (state.currentIndex >= state.queue.length) state.currentIndex = 0;
+                            playSong(state.queue[state.currentIndex]);
+                        } else {
+                            state.currentSong = null;
+                            state.currentIndex = -1;
+                            elements.audio.pause();
+                            state.isPlaying = false;
+                            updatePlayBtnUI();
+                            if (elements.npTitle) elements.npTitle.innerHTML = "No track selected";
+                            if (elements.npArtist) elements.npArtist.textContent = "-";
+                            if (elements.npImage) elements.npImage.src = "MARINE LOGO FINAL.png";
+                            if (elements.fsTitle) elements.fsTitle.innerHTML = "No track selected";
+                            if (elements.fsArtist) elements.fsArtist.textContent = "-";
+                            if (elements.fsImage) elements.fsImage.src = "MARINE LOGO FINAL.png";
+                            elements.audio.src = "";
+                        }
+                    } else if (state.currentIndex > index) {
+                        state.currentIndex--;
+                    }
+                    saveState();
+                    renderQueueUI();
+                });
+            }
             
             item.addEventListener('click', () => {
                 state.currentIndex = index;
@@ -1262,9 +1344,28 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.themeToggle.addEventListener('click', toggleTheme);
         }
 
-        // --- Navigation ---
+        // --- Navigation & Dropdown ---
+        if (elements.hamburgerBtn && elements.dropdownMenu) {
+            elements.hamburgerBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                elements.dropdownMenu.classList.toggle('open');
+            });
+            document.addEventListener('click', (e) => {
+                if (!elements.dropdownMenu.contains(e.target) && !elements.hamburgerBtn.contains(e.target)) {
+                    elements.dropdownMenu.classList.remove('open');
+                }
+            });
+        }
+
+        if (elements.autoDjNavBtn) {
+            elements.autoDjNavBtn.addEventListener('click', openGenreModal);
+        }
+
         elements.navLinks.forEach(link => {
             link.addEventListener('click', (e) => {
+                elements.navLinks.forEach(l => l.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                if (elements.dropdownMenu) elements.dropdownMenu.classList.remove('open');
                 switchView(e.currentTarget.dataset.page);
             });
         });
@@ -1616,6 +1717,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- Queue & Share ---
+        const clearQueueBtn = document.getElementById('clear-queue-btn');
+        if (clearQueueBtn) {
+            clearQueueBtn.addEventListener('click', () => {
+                if (state.queue.length === 0) return;
+                if (confirm('Are you sure you want to clear the entire queue?')) {
+                    state.queue = [];
+                    state.currentSong = null;
+                    state.currentIndex = -1;
+                    elements.audio.pause();
+                    state.isPlaying = false;
+                    updatePlayBtnUI();
+                    if (elements.npTitle) elements.npTitle.innerHTML = "No track selected";
+                    if (elements.npArtist) elements.npArtist.textContent = "-";
+                    if (elements.npImage) elements.npImage.src = "MARINE LOGO FINAL.png";
+                    if (elements.fsTitle) elements.fsTitle.innerHTML = "No track selected";
+                    if (elements.fsArtist) elements.fsArtist.textContent = "-";
+                    if (elements.fsImage) elements.fsImage.src = "MARINE LOGO FINAL.png";
+                    elements.audio.src = "";
+                    
+                    saveState();
+                    renderQueueUI();
+                    showToast('Queue cleared');
+                }
+            });
+        }
+        
         const openQueueModal = () => {
             if (elements.queueModal) {
                 elements.queueModal.classList.add('open');
