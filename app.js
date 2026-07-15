@@ -54,23 +54,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     const elements = {
         // Layout
+        sidebar: document.querySelector('.sidebar'),
         navLinks: document.querySelectorAll('.nav-links li'),
         views: document.querySelectorAll('.view'),
         themeToggle: document.getElementById('theme-btn'),
         themeIcon: document.querySelector('#theme-btn i'),
-        themeText: document.getElementById('theme-text'),
         loader: document.getElementById('main-loader'),
-        hamburgerBtn: document.getElementById('hamburger-btn'),
-        dropdownMenu: document.getElementById('dropdown-menu'),
-        autoDjNavBtn: document.getElementById('auto-dj-nav-btn'),
-
-        // Hero Banner
-        heroBanner: document.getElementById('hero-banner'),
-        heroBg: document.getElementById('hero-bg'),
-        heroImage: document.getElementById('hero-image'),
-        heroTitle: document.getElementById('hero-title'),
-        heroArtistName: document.getElementById('hero-artist-name'),
-        heroPlayBtn: document.getElementById('hero-play-btn'),
 
         // Player
         audio: document.getElementById('audio-player'),
@@ -146,8 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Content
         trendingGrid: document.getElementById('trending-grid'),
-        newReleasedGrid: document.getElementById('new-released-grid'),
-        topArtistsGrid: document.getElementById('top-artists-grid'),
         searchInput: document.getElementById('search-input'),
         searchResults: document.getElementById('search-grid'),
         likedSongsList: document.getElementById('liked-songs-list'),
@@ -176,7 +163,16 @@ document.addEventListener('DOMContentLoaded', () => {
         autoDjBtn: document.getElementById('auto-dj-btn'),
         genreModal: document.getElementById('genre-modal'),
         closeGenreModal: document.getElementById('close-genre-modal'),
-        genreBtns: document.querySelectorAll('.genre-btn')
+        genreBtns: document.querySelectorAll('.genre-btn'),
+        
+        // Hero Banner
+        heroBanner: document.getElementById('hero-banner'),
+        heroBgBlur: document.getElementById('hero-bg-blur'),
+        heroImg: document.getElementById('hero-img'),
+        heroTitle: document.getElementById('hero-title'),
+        heroArtist: document.getElementById('hero-artist'),
+        heroPlayBtn: document.getElementById('hero-play-btn'),
+        quickOptionBtns: document.querySelectorAll('.quick-option-btn')
     };
 
     // =============================================
@@ -244,45 +240,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Show skeleton loaders while fetching
         showSkeletons(elements.trendingGrid, 10);
-        if (elements.newReleasedGrid) showSkeletons(elements.newReleasedGrid, 10);
-        if (elements.topArtistsGrid) showSkeletons(elements.topArtistsGrid, 10);
 
         // Load trending songs
         const trending = await AirbeatsAPI.getTrendingSongs();
         renderSongs(trending, elements.trendingGrid);
-
-        // Populate Hero Banner with #1 Trending
-        if (trending && trending.length > 0 && elements.heroBanner) {
-            const heroSong = trending[0];
-            const image = heroSong.image?.[heroSong.image.length - 1]?.url || 'MARINE LOGO FINAL.png';
-            const artist = heroSong.artists?.primary?.[0]?.name || 'Unknown Artist';
-            elements.heroBg.style.backgroundImage = `url('${image}')`;
-            elements.heroImage.src = image;
-            elements.heroTitle.textContent = heroSong.name;
-            elements.heroArtistName.textContent = artist;
-            
-            elements.heroPlayBtn.onclick = () => {
-                state.queue = [heroSong];
-                state.currentIndex = 0;
-                playSong(heroSong);
-            };
-        } else if (elements.heroBanner) {
-            elements.heroBanner.style.display = 'none';
-        }
-
-        // Load New Releases
-        if (elements.newReleasedGrid) {
-            AirbeatsAPI.searchSongs('latest new songs', 20).then(newSongs => {
-                renderSongs(newSongs, elements.newReleasedGrid);
-            });
-        }
-
-        // Load Top Artists Hits
-        if (elements.topArtistsGrid) {
-            AirbeatsAPI.searchSongs('best artist hits', 20).then(artistSongs => {
-                renderSongs(artistSongs, elements.topArtistsGrid);
-            });
-        }
+        updateHeroBanner(trending);
 
         loadDownloads();
         
@@ -293,6 +255,31 @@ document.addEventListener('DOMContentLoaded', () => {
             // Remove params from URL so it doesn't re-import on refresh
             window.history.replaceState({}, document.title, window.location.pathname);
         }
+    }
+    
+    function updateHeroBanner(songs) {
+        if (!elements.heroBanner || !songs || songs.length === 0) return;
+        
+        // Pick a top song
+        const song = songs[0];
+        
+        const imgObj = song.image?.find(img => img.quality === '500x500') || song.image?.[song.image.length - 1];
+        const imgUrl = imgObj?.url || imgObj?.link || 'MARINE LOGO FINAL.png';
+        const artist = song.artists?.primary?.map(a => a.name).join(', ') || 'Unknown Artist';
+        
+        elements.heroImg.src = imgUrl;
+        elements.heroBgBlur.style.backgroundImage = `url('${imgUrl}')`;
+        elements.heroTitle.textContent = song.name;
+        elements.heroArtist.innerHTML = `${artist} <i class="fa-solid fa-heart" style="color:var(--accent-purple); font-size: 12px; margin-left: 5px;"></i>`;
+        
+        // Setup play button
+        elements.heroPlayBtn.onclick = () => {
+            state.queue = [song];
+            state.currentIndex = 0;
+            playSong(song);
+        };
+        
+        elements.heroBanner.style.display = 'flex';
     }
 
     async function fetchGlobalBroadcast() {
@@ -845,6 +832,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function playSong(song, autoPlay = true) {
         if (!song) return;
         state.currentSong = song;
+        
+        const pb = document.getElementById('player-bar');
+        if (pb) pb.classList.remove('hidden');
 
         const streamUrlObj = song.downloadUrl?.find(u => u.quality === '320kbps')
             || song.downloadUrl?.[song.downloadUrl.length - 1];
@@ -1344,28 +1334,9 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.themeToggle.addEventListener('click', toggleTheme);
         }
 
-        // --- Navigation & Dropdown ---
-        if (elements.hamburgerBtn && elements.dropdownMenu) {
-            elements.hamburgerBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                elements.dropdownMenu.classList.toggle('open');
-            });
-            document.addEventListener('click', (e) => {
-                if (!elements.dropdownMenu.contains(e.target) && !elements.hamburgerBtn.contains(e.target)) {
-                    elements.dropdownMenu.classList.remove('open');
-                }
-            });
-        }
-
-        if (elements.autoDjNavBtn) {
-            elements.autoDjNavBtn.addEventListener('click', openGenreModal);
-        }
-
+        // --- Navigation ---
         elements.navLinks.forEach(link => {
             link.addEventListener('click', (e) => {
-                elements.navLinks.forEach(l => l.classList.remove('active'));
-                e.currentTarget.classList.add('active');
-                if (elements.dropdownMenu) elements.dropdownMenu.classList.remove('open');
                 switchView(e.currentTarget.dataset.page);
             });
         });
@@ -1454,25 +1425,110 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // --- Trending Filters ---
-        const filterBtns = document.querySelectorAll('#trending-filters .filter-btn');
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                filterBtns.forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-
-                showSkeletons(elements.trendingGrid, 10);
-                const query = e.target.getAttribute('data-query');
-                let songs;
-                if (query === 'hindi romantic songs') {
-                    songs = await AirbeatsAPI.getTrendingSongs();
-                } else {
-                    songs = await AirbeatsAPI.searchSongs(query, 20);
-                }
-                
-                renderSongs(songs, elements.trendingGrid);
+        // --- Mobile Options Toggle ---
+        const mobileToggleBtn = document.getElementById('mobile-options-toggle');
+        const quickOptionsMenu = document.querySelector('.quick-options-menu');
+        if (mobileToggleBtn && quickOptionsMenu) {
+            mobileToggleBtn.addEventListener('click', () => {
+                quickOptionsMenu.classList.toggle('show');
             });
-        });
+        }
+
+        // --- Quick Options ---
+        if (elements.quickOptionBtns) {
+            elements.quickOptionBtns.forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    elements.quickOptionBtns.forEach(b => b.classList.remove('active'));
+                    e.currentTarget.classList.add('active');
+
+                    // If on mobile, hide the menu after selection
+                    if (window.innerWidth <= 900 && quickOptionsMenu) {
+                        quickOptionsMenu.classList.remove('show');
+                    }
+
+                    showSkeletons(elements.trendingGrid, 10);
+                    let query = e.currentTarget.getAttribute('data-query');
+                    let songs = [];
+                    
+                    // We will read currentLanguage from the variable defined below
+                    const lang = window.currentLanguage || 'global';
+                    const langPrefix = lang === 'global' ? '' : lang + ' ';
+
+                    if (query === 'best of arijit singh') {
+                        // Custom Dev's Favs Playlist
+                        const devQueries = [
+                            "inaam",
+                            "inaam jasleen royal",
+                            "baarishein",
+                            "tum ho kaha",
+                            "moral of the story ashe",
+                            "die for you",
+                            "believer imagine dragons"
+                        ];
+                        try {
+                            const songPromises = devQueries.map(q => AirbeatsAPI.searchSongs(q, 1));
+                            const resultsArray = await Promise.all(songPromises);
+                            songs = resultsArray.map(res => res && res[0]).filter(song => song != null);
+                        } catch (err) {
+                            console.error("Failed fetching dev favs", err);
+                            songs = await AirbeatsAPI.searchSongs("hindi romantic songs", 10); // fallback
+                        }
+                    } else if (query === 'hindi romantic songs' || query === 'trending') {
+                        if (lang === 'global') {
+                            songs = await AirbeatsAPI.getTrendingSongs();
+                        } else {
+                            songs = await AirbeatsAPI.searchSongs(`${langPrefix}trending songs`, 20);
+                        }
+                    } else if (query === 'top artists') {
+                        songs = await AirbeatsAPI.searchSongs(`${langPrefix}best artists`, 20);
+                    } else if (query === 'new releases') {
+                        songs = await AirbeatsAPI.searchSongs(`${langPrefix}latest songs`, 20);
+                    } else if (query === 'popular hits') {
+                        songs = await AirbeatsAPI.searchSongs(`${langPrefix}popular hit songs`, 20);
+                    } else {
+                        songs = await AirbeatsAPI.searchSongs(`${langPrefix}${query}`, 20);
+                    }
+                    
+                    renderSongs(songs, elements.trendingGrid);
+                    updateHeroBanner(songs);
+                });
+            });
+            
+            // --- Custom Language Selector ---
+            const langSelector = document.getElementById('custom-lang-selector');
+            const langOptions = document.querySelectorAll('.lang-option');
+            const langText = document.getElementById('custom-lang-text');
+            window.currentLanguage = 'global'; // expose globally for quick access in the click handler above
+            
+            if (langSelector) {
+                langSelector.addEventListener('click', (e) => {
+                    langSelector.classList.toggle('open');
+                    e.stopPropagation();
+                });
+                
+                document.addEventListener('click', (e) => {
+                    if (!langSelector.contains(e.target)) {
+                        langSelector.classList.remove('open');
+                    }
+                });
+                
+                langOptions.forEach(opt => {
+                    opt.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        langOptions.forEach(o => o.classList.remove('active'));
+                        opt.classList.add('active');
+                        
+                        window.currentLanguage = opt.getAttribute('data-value');
+                        if (langText) langText.textContent = opt.textContent;
+                        
+                        langSelector.classList.remove('open');
+                        
+                        const activeBtn = document.querySelector('.quick-option-btn.active');
+                        if (activeBtn) activeBtn.click();
+                    });
+                });
+            }
+        }
 
         // --- Fullscreen Player ---
         if (elements.btnFullscreen) {

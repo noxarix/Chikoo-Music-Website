@@ -4,8 +4,9 @@ Chikoo Music is a modern, responsive, and sleek music streaming web application 
 
 ## Features
 
-- **Modern Glassmorphism UI:** A sleek, dark-themed user interface that looks and feels like a premium app.
-- **Discover & Search:** Browse the latest trending Hindi Bollywood songs or search for your favorite tracks, artists, and albums.
+- **Modern Glassmorphism UI:** A sleek, dark-themed user interface that looks and feels like a premium app with responsive mobile design resembling Spotify.
+- **Discover & Search:** Browse the latest trending songs in multiple languages (Hindi, English, Punjabi, etc.) or search for your favorite tracks.
+- **Language & Quick Options:** Instantly switch languages for trending songs or load "Dev's Favs" with a single click.
 - **Auto-DJ:** Endless playback based on your favorite genres (Bollywood, Pop, Lo-Fi, Punjabi, EDM, Hip-Hop).
 - **Interactive Queue System:** View and interact with the "Up Next" queue in a clean side panel.
 - **Live Lyrics:** Sing along with live lyrics fetched dynamically for the current playing song.

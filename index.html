@@ -20,46 +20,72 @@
 </head>
 
 <body>
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="bg-blob blob-1"></div>
+        <div class="bg-blob blob-2"></div>
+        <div class="bg-blob blob-3"></div>
+    </div>
+
+    <!-- App Container -->
     <div class="app-container">
-        <!-- Top Navigation Bar -->
-        <nav class="top-navbar">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
             <div class="logo">
                 <img src="MARINE LOGO FINAL.png" alt="Logo" class="brand-logo">
                 <span>ᴄʜɪᴋᴏᴏ ✘ ᴍᴜsɪᴄ</span>
             </div>
-            <div class="search-bar-container">
-                <i class="fa-solid fa-search"></i>
-                <input type="text" id="search-input" placeholder="Search songs...">
-            </div>
-            <div class="nav-actions">
-                <button id="auto-dj-nav-btn" class="nav-icon-btn" title="Auto DJ"><i class="fa-solid fa-infinity"></i></button>
-                <button id="hamburger-btn" class="nav-icon-btn"><i class="fa-solid fa-bars"></i></button>
-            </div>
-        </nav>
 
-        <!-- Dropdown Menu -->
-        <div id="dropdown-menu" class="dropdown-menu glass">
             <ul class="nav-links">
                 <li class="active" data-page="home"><i class="fa-solid fa-house"></i> Discover</li>
-                <li data-page="search"><i class="fa-solid fa-magnifying-glass"></i> Search</li>
                 <li data-page="playlists"><i class="fa-solid fa-heart"></i> Liked Songs</li>
                 <li data-page="my-playlists"><i class="fa-solid fa-layer-group"></i> My Playlists</li>
                 <li data-page="downloads"><i class="fa-solid fa-download"></i> Downloads</li>
                 <li data-page="report"><i class="fa-solid fa-circle-exclamation"></i> Report Issue</li>
                 <li data-page="admin" id="nav-admin" style="display: none; color: var(--accent-purple);"><i class="fa-solid fa-shield-halved"></i> Admin Panel</li>
             </ul>
-            <div class="dropdown-footer">
+
+            <div class="sidebar-footer">
                 <button id="auth-btn" class="auth-btn">
                     <i class="fa-solid fa-right-to-bracket"></i> Login / Register
                 </button>
-                <button id="theme-btn" class="theme-btn">
-                    <i class="fa-solid fa-moon"></i> <span id="theme-text">Light Mode</span>
+            </div>
+
+            <div class="theme-toggle">
+                <button id="theme-btn" title="Toggle Theme">
+                    <i class="fa-solid fa-moon"></i>
                 </button>
             </div>
-        </div>
+        </nav>
 
         <!-- Main Content Area -->
         <main class="main-content">
+            <header class="top-bar">
+                <div class="search-bar-container">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Search for songs, artists, albums...">
+                    <div class="search-shortcut">
+                        <kbd>Ctrl</kbd><kbd>K</kbd>
+                    </div>
+                </div>
+                
+                <!-- Custom Language Selector -->
+                <div class="custom-language-selector glass" id="custom-lang-selector" style="margin-left: 15px; border-radius: 50px; padding: 5px 15px; display: flex; align-items: center; gap: 8px; cursor: pointer; position: relative;">
+                    <i class="fa-solid fa-language" style="color: var(--accent-purple);"></i>
+                    <span id="custom-lang-text" style="font-size: 14px; font-weight: 500;">Global</span>
+                    <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
+                    
+                    <div class="custom-lang-dropdown" id="custom-lang-dropdown">
+                        <div class="lang-option active" data-value="global">Global</div>
+                        <div class="lang-option" data-value="hindi">Hindi</div>
+                        <div class="lang-option" data-value="english">English</div>
+                        <div class="lang-option" data-value="punjabi">Punjabi</div>
+                    </div>
+                </div>
+                
+                <!-- Mobile Options Toggle -->
+                <button id="mobile-options-toggle" class="action-btn" style="margin-left: 15px; display: none;"><i class="fa-solid fa-bars"></i></button>
+            </header>
 
             <div id="broadcast-banner" style="display: none; background: rgba(183, 33, 255, 0.2); border-bottom: 1px solid rgba(183, 33, 255, 0.4); padding: 10px 20px; color: var(--text-primary); align-items: center; justify-content: space-between; font-size: 14px; font-weight: 500;">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -75,35 +101,36 @@
                     <div class="spinner"></div>
                 </div>
                 <div id="view-home" class="view active">
-                    <!-- Hero Banner -->
-                    <div class="hero-banner" id="hero-banner">
-                        <div class="hero-bg" id="hero-bg"></div>
-                        <div class="hero-content">
-                            <div class="hero-image-container">
-                                <img src="MARINE LOGO FINAL.png" alt="Featured Cover" id="hero-image">
-                                <div class="hero-music-icon"><i class="fa-solid fa-music"></i></div>
-                            </div>
-                            <div class="hero-details">
-                                <span class="hero-badge"><i class="fa-solid fa-crown"></i> MOST PLAYED</span>
-                                <h1 class="hero-title" id="hero-title">Loading...</h1>
-                                <p class="hero-artist" id="hero-artist"><span id="hero-artist-name">-</span> <i class="fa-solid fa-heart" style="color: var(--accent-red); font-size: 0.8rem;"></i></p>
-                                <button class="hero-play-btn glow-btn" id="hero-play-btn"><i class="fa-solid fa-play"></i> Open Player</button>
+                    <div class="home-top-section">
+                        <!-- Hero Banner -->
+                        <div class="hero-banner glass" id="hero-banner" style="display: none;">
+                            <div class="hero-bg-blur" id="hero-bg-blur"></div>
+                            <div class="hero-content">
+                                <div class="hero-cover-wrapper">
+                                    <img src="MARINE LOGO FINAL.png" alt="Featured Song" id="hero-img" class="hero-img">
+                                    <div class="hero-music-note"><i class="fa-solid fa-music"></i></div>
+                                </div>
+                                <div class="hero-info">
+                                    <div class="hero-tag"><i class="fa-solid fa-crown"></i> MOST PLAYED</div>
+                                    <h2 id="hero-title">Loading...</h2>
+                                    <p id="hero-artist" style="display:flex; align-items:center; gap:5px;">- <i class="fa-solid fa-heart" style="color:var(--accent-purple); font-size: 12px;"></i></p>
+                                    <button class="action-btn primary glow-btn" id="hero-play-btn" style="margin-top: 15px; padding: 10px 25px; font-size: 16px;"><i class="fa-solid fa-play"></i> Open Player</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <h2 class="section-title"><i class="fa-solid fa-chart-line" style="color: #a0d841;"></i> TRENDING NOW</h2>
-                    <div class="cards-grid horizontal-scroll" id="trending-grid">
-                        <!-- Cards / Skeletons injected by JS -->
+                        <!-- Quick Options Menu -->
+                        <div class="quick-options-menu glass">
+                            <button class="quick-option-btn active" data-query="hindi romantic songs"><i class="fa-solid fa-arrow-trend-up"></i> Trending</button>
+                            <button class="quick-option-btn" data-query="global top 50"><i class="fa-solid fa-globe"></i> World Top Hits</button>
+                            <button class="quick-option-btn" data-query="top artists"><i class="fa-solid fa-users"></i> Top Artists</button>
+                            <button class="quick-option-btn" data-query="new releases"><i class="fa-solid fa-compact-disc"></i> New Releases</button>
+                            <button class="quick-option-btn" data-query="best of arijit singh"><i class="fa-regular fa-heart"></i> Dev's Favs</button>
+                            <button class="quick-option-btn" data-query="popular hits"><i class="fa-solid fa-music"></i> Popular Hits</button>
+                        </div>
                     </div>
-
-                    <h2 class="section-title" style="margin-top: 30px;"><i class="fa-solid fa-fire" style="color: #ff4757;"></i> NEWLY RELEASED</h2>
-                    <div class="cards-grid horizontal-scroll" id="new-released-grid">
-                        <!-- Cards / Skeletons injected by JS -->
-                    </div>
-
-                    <h2 class="section-title" style="margin-top: 30px;"><i class="fa-solid fa-users" style="color: #2ed573;"></i> TOP ARTISTS HITS</h2>
-                    <div class="cards-grid horizontal-scroll" id="top-artists-grid">
+                    <h1 class="page-title" style="margin-top: 30px;">Trending Now</h1>
+                    <div class="cards-grid" id="trending-grid">
                         <!-- Cards / Skeletons injected by JS -->
                     </div>
                 </div>
@@ -223,7 +250,7 @@
         </main>
 
         <!-- Global Music Player -->
-        <div class="player-bar glass">
+        <div class="player-bar hidden" id="player-bar">
             <div class="now-playing">
                 <img id="np-image" src="MARINE LOGO FINAL.png" alt="Cover" class="np-cover">
                 <div class="np-info">
