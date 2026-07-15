@@ -2058,62 +2058,117 @@ body::before {
         flex-direction: column;
     }
     .sidebar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
         width: 100%;
-        height: auto;
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 12px 0 0 0;
+        height: 65px;
+        flex-direction: row;
+        padding: 0;
         border-right: none;
-        border-bottom: 1px solid var(--glass-border);
-        position: relative;
+        border-top: 1px solid var(--glass-border);
+        z-index: 1000;
+        justify-content: space-around;
+        align-items: center;
+        background: rgba(18, 14, 31, 0.98);
+        transition: none;
     }
-    .logo {
-        padding: 0 20px;
-        margin-bottom: 12px;
-        font-size: 20px;
-        justify-content: flex-start;
-    }
-    .logo span {
-        display: inline;
-        font-size: 18px;
+    .logo, .sidebar-footer, .theme-toggle {
+        display: none !important;
     }
     .nav-links {
         display: flex;
+        flex-direction: row;
         width: 100%;
-        overflow-x: auto;
-        padding: 0 10px;
+        justify-content: space-around;
+        padding: 0;
+        margin: 0;
     }
     .nav-links li {
-        padding: 10px 14px;
-        border-radius: 0;
-        margin-bottom: 0;
-        border-bottom: 3px solid transparent;
-        white-space: nowrap;
-        font-size: 13px;
-        justify-content: flex-start;
-        gap: 8px;
+        flex-direction: column;
+        padding: 8px 10px;
+        font-size: 10px;
+        gap: 6px;
+        margin: 0;
+        border-radius: 8px;
+        align-items: center;
+        justify-content: center;
     }
-    .nav-links li.active {
-        background: transparent;
-        border-bottom-color: var(--accent-purple);
+    .nav-links li span {
+        display: none; /* Hide text on mobile for Spotify style */
+    }
+    .nav-links li i {
+        font-size: 22px;
+        margin: 0;
     }
     .nav-links li.active::before {
         display: none;
     }
-    .theme-toggle {
-        position: absolute;
-        top: 12px;
-        right: 16px;
-        padding: 0;
-        border-top: none;
-    }
-    .player-bar {
-        padding: 0 12px;
-        height: 72px;
+    .nav-links li.active {
+        background: transparent;
+        color: var(--accent-purple);
     }
     .main-content {
-        padding-bottom: 72px;
+        padding-bottom: 0;
+        height: 100vh;
     }
+    .page-content {
+        height: calc(100vh - 135px); /* Header + bottom nav approx height */
+        padding-bottom: 80px; /* buffer */
+        overflow-y: auto;
+    }
+    
+    .player-bar {
+        bottom: 65px; /* sit above bottom nav */
+        padding: 0 10px;
+        height: 70px;
+        background: rgba(17, 18, 24, 0.98);
+    }
+    .now-playing {
+        flex: 1;
+        min-width: 0;
+    }
+    .player-center {
+        flex: unset;
+    }
+    .player-controls {
+        gap: 15px;
+    }
+    .player-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+    .play-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    /* Top Bar & Language Selector */
+    .top-bar {
+        padding: 10px 15px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .search-bar-container {
+        flex: 1;
+        min-width: 0;
+    }
+    .search-shortcut {
+        display: none;
+    }
+    .custom-lang-dropdown {
+        right: 0;
+        left: auto;
+    }
+    #custom-lang-text {
+        display: none; /* Hide text on small screens, keep icon */
+    }
+    .hero-info h2 {
+        font-size: 28px;
+    }
+    
     .np-cover {
         width: 44px;
         height: 44px;
@@ -2121,12 +2176,6 @@ body::before {
     }
     .np-cover.playing {
         border-radius: 50%;
-    }
-    .now-playing {
-        width: auto;
-        min-width: 0;
-        flex: 1;
-        gap: 10px;
     }
     .np-info h4 {
         font-size: 13px;
@@ -2140,34 +2189,11 @@ body::before {
     .player-actions {
         display: none;
     }
-    .player-center {
-        flex: unset;
-    }
-    .player-controls {
-        gap: 14px;
-    }
-    .play-btn {
-        width: 38px;
-        height: 38px;
-        font-size: 14px;
-    }
-    .control-btn {
-        font-size: 15px;
-    }
     #shuffle-btn, #repeat-btn {
         display: none;
     }
     .progress-container {
-        display: none;
-    }
-    .page-content {
-        padding: 0 16px 16px;
-    }
-    .top-bar {
-        padding: 12px 16px;
-    }
-    .search-shortcut {
-        display: none;
+        display: none; /* Hide progress bar on mobile mini-player */
     }
     .page-title {
         font-size: 24px;
