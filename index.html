@@ -12,7 +12,7 @@
     <meta property="og:image" content="MARINE LOGO FINAL.png">
     <meta property="og:url" content="https://chikoomusic.com">
     <title>Chikoo Music - Premium Music Streaming</title>
-    <link rel="stylesheet" href="style.css?v=1783995359411">
+    <link rel="stylesheet" href="style.css?v=1784165474215">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="icon" type="image/png" href="MARINE LOGO FINAL.png">
@@ -45,15 +45,12 @@
                 <li data-page="admin" id="nav-admin" style="display: none; color: var(--accent-purple);"><i class="fa-solid fa-shield-halved"></i> <span>Admin Panel</span></li>
             </ul>
 
-            <div class="sidebar-footer">
-                <button id="auth-btn" class="auth-btn">
-                    <i class="fa-solid fa-right-to-bracket"></i> Login / Register
-                </button>
-            </div>
-
-            <div class="theme-toggle">
-                <button id="theme-btn" title="Toggle Theme">
+            <div class="sidebar-footer" style="display: flex; gap: 10px; padding: 15px; align-items: center; justify-content: center;">
+                <button id="theme-btn" title="Toggle Theme" style="background: rgba(255,255,255,0.1); border: none; color: var(--text-primary); width: 42px; height: 42px; border-radius: 8px; cursor: pointer; transition: 0.3s; flex-shrink: 0;">
                     <i class="fa-solid fa-moon"></i>
+                </button>
+                <button id="auth-btn" class="auth-btn" style="flex: 1; padding: 10px;">
+                    <i class="fa-solid fa-right-to-bracket"></i> <span>Login</span>
                 </button>
             </div>
         </nav>
@@ -86,6 +83,17 @@
                 <!-- Mobile Options Toggle -->
                 <button id="mobile-options-toggle" class="action-btn" style="margin-left: 15px; display: none;"><i class="fa-solid fa-bars"></i></button>
             </header>
+
+            <!-- Global Mobile Menu Overlay -->
+            <div id="mobile-overlay-menu" class="glass" style="display: none; position: fixed; top: 70px; right: 20px; z-index: 2000; width: 220px; flex-direction: column; gap: 8px; padding: 15px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1);">
+                <button class="quick-option-btn" data-query="hindi romantic songs" style="justify-content: flex-start; padding: 10px;"><i class="fa-solid fa-arrow-trend-up"></i> Trending</button>
+                <button class="quick-option-btn" data-query="global top 50" style="justify-content: flex-start; padding: 10px;"><i class="fa-solid fa-globe"></i> World Top Hits</button>
+                <button class="quick-option-btn" data-query="new releases" style="justify-content: flex-start; padding: 10px;"><i class="fa-solid fa-compact-disc"></i> New Releases</button>
+                <button class="quick-option-btn" data-query="best of arijit singh" style="justify-content: flex-start; padding: 10px;"><i class="fa-regular fa-heart"></i> Dev's Favs</button>
+                <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 5px 0;"></div>
+                <button id="mobile-theme-btn" class="quick-option-btn" style="justify-content: flex-start; padding: 10px;"><i class="fa-solid fa-moon"></i> Theme</button>
+                <button id="mobile-auth-btn" class="quick-option-btn" style="justify-content: flex-start; padding: 10px; color: var(--accent-purple);"><i class="fa-solid fa-right-to-bracket"></i> <span>Login</span></button>
+            </div>
 
             <div id="broadcast-banner" style="display: none; background: rgba(183, 33, 255, 0.2); border-bottom: 1px solid rgba(183, 33, 255, 0.4); padding: 10px 20px; color: var(--text-primary); align-items: center; justify-content: space-between; font-size: 14px; font-weight: 500;">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -120,7 +128,7 @@
                         </div>
 
                         <!-- Quick Options Menu -->
-                        <div class="quick-options-menu glass">
+                        <div class="quick-options-menu glass" id="quick-options-menu">
                             <button class="quick-option-btn active" data-query="hindi romantic songs"><i class="fa-solid fa-arrow-trend-up"></i> Trending</button>
                             <button class="quick-option-btn" data-query="global top 50"><i class="fa-solid fa-globe"></i> World Top Hits</button>
                             <button class="quick-option-btn" data-query="top artists"><i class="fa-solid fa-users"></i> Top Artists</button>
@@ -526,6 +534,6 @@
     </div>
 
     <script src="api.js?v=1783995359411"></script>
-    <script type="module" src="app.js?v=1783998474462"></script>
+    <script type="module" src="app.js?v=1784165474215"></script>
 </body>
 </html>

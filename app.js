@@ -494,6 +494,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? 'fa-solid fa-sun'
                 : 'fa-solid fa-moon';
         }
+        const mobileThemeIcon = document.querySelector('#mobile-theme-btn i');
+        if (mobileThemeIcon) {
+            mobileThemeIcon.className = state.theme === 'dark'
+                ? 'fa-solid fa-sun'
+                : 'fa-solid fa-moon';
+        }
     }
 
     // =============================================
@@ -1330,9 +1336,57 @@ document.addEventListener('DOMContentLoaded', () => {
         let isProfileVideoMuted = false;
 
         // --- Theme ---
-        if (elements.themeToggle) {
-            elements.themeToggle.addEventListener('click', toggleTheme);
+        const themeBtns = [elements.themeToggle, document.getElementById('mobile-theme-btn')];
+        themeBtns.forEach(btn => {
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    toggleTheme();
+                    const mobileOverlayMenu = document.getElementById('mobile-overlay-menu');
+                    if (window.innerWidth <= 900 && mobileOverlayMenu) {
+                        mobileOverlayMenu.style.display = 'none';
+                    }
+                });
+            }
+        });
+
+        // --- Language Selector ---
+        const langSelector = document.getElementById('custom-lang-selector');
+        const langText = document.getElementById('custom-lang-text');
+        const langOptions = document.querySelectorAll('.lang-option');
+
+        if (langSelector) {
+            langSelector.addEventListener('click', (e) => {
+                e.stopPropagation();
+                langSelector.classList.toggle('open');
+            });
         }
+        
+        if (langOptions) {
+            langOptions.forEach(opt => {
+                opt.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const val = opt.getAttribute('data-value');
+                    const text = opt.textContent;
+                    
+                    langOptions.forEach(o => o.classList.remove('active'));
+                    opt.classList.add('active');
+                    
+                    if (langText) langText.textContent = text;
+                    window.currentLanguage = val;
+                    if (langSelector) langSelector.classList.remove('open');
+                    
+                    // Trigger a re-search or reload if needed based on language
+                    // For now we just show a toast
+                    showToast(`Language set to ${text}`);
+                });
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (langSelector && langSelector.classList.contains('open') && !langSelector.contains(e.target)) {
+                langSelector.classList.remove('open');
+            }
+        });
 
         // --- Navigation ---
         elements.navLinks.forEach(link => {
@@ -1342,23 +1396,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // --- Auth Modals ---
-        if (elements.authBtn) {
-            elements.authBtn.addEventListener('click', () => {
-                if (state.token) {
-                    if (auth) {
-                        signOut(auth).then(() => {
-                            showToast('Logged out');
-                        });
+        const authBtns = [elements.authBtn, document.getElementById('mobile-auth-btn')];
+        authBtns.forEach(btn => {
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    if (state.token) {
+                        if (auth) {
+                            signOut(auth).then(() => {
+                                showToast('Logged out');
+                            });
+                        } else {
+                            state.token = null;
+                            state.user = null;
+                            updateAuthUI();
+                        }
                     } else {
-                        state.token = null;
-                        state.user = null;
-                        updateAuthUI();
+                        elements.authModal.classList.add('open');
                     }
-                } else {
-                    elements.authModal.classList.add('open');
-                }
-            });
-        }
+                    const mobileOverlayMenu = document.getElementById('mobile-overlay-menu');
+                    if (window.innerWidth <= 900 && mobileOverlayMenu) {
+                        mobileOverlayMenu.style.display = 'none';
+                    }
+                });
+            }
+        });
         if (elements.tabLogin && elements.tabRegister) {
             elements.tabLogin.addEventListener('click', () => {
                 elements.tabLogin.classList.add('active');
@@ -1427,13 +1488,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- Mobile Options Toggle ---
         const mobileToggleBtn = document.getElementById('mobile-options-toggle');
-        const quickOptionsMenu = document.querySelector('.quick-options-menu');
-        if (mobileToggleBtn && quickOptionsMenu) {
-            mobileToggleBtn.addEventListener('click', () => {
-                quickOptionsMenu.classList.toggle('show');
+        const mobileOverlayMenu = document.getElementById('mobile-overlay-menu');
+        if (mobileToggleBtn && mobileOverlayMenu) {
+            mobileToggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isShowing = mobileOverlayMenu.style.display === 'flex';
+                mobileOverlayMenu.style.display = isShowing ? 'none' : 'flex';
+            });
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (mobileOverlayMenu.style.display === 'flex' && !mobileOverlayMenu.contains(e.target) && !mobileToggleBtn.contains(e.target)) {
+                    mobileOverlayMenu.style.display = 'none';
+                }
             });
         }
-
         // --- Quick Options ---
         if (elements.quickOptionBtns) {
             elements.quickOptionBtns.forEach(btn => {
@@ -1442,8 +1510,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.currentTarget.classList.add('active');
 
                     // If on mobile, hide the menu after selection
-                    if (window.innerWidth <= 900 && quickOptionsMenu) {
-                        quickOptionsMenu.classList.remove('show');
+                    const mobileOverlayMenu = document.getElementById('mobile-overlay-menu');
+                    if (window.innerWidth <= 900 && mobileOverlayMenu) {
+                        mobileOverlayMenu.style.display = 'none';
                     }
 
                     showSkeletons(elements.trendingGrid, 10);
@@ -1976,8 +2045,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // AUTHENTICATION & ADMIN
     // =============================================
     function updateAuthUI() {
+        const mobileAuthBtn = document.getElementById('mobile-auth-btn');
         if (state.token && state.user) {
-            elements.authBtn.innerHTML = `<i class="fa-solid fa-sign-out-alt"></i> Logout (${state.user.username})`;
+            const logoutHtml = `<i class="fa-solid fa-sign-out-alt"></i> <span>Logout (${state.user.username})</span>`;
+            if (elements.authBtn) elements.authBtn.innerHTML = logoutHtml;
+            if (mobileAuthBtn) mobileAuthBtn.innerHTML = logoutHtml;
+            
             if (state.user.role === 'owner' && elements.navAdmin) {
                 elements.navAdmin.style.display = 'flex';
             }
@@ -1985,7 +2058,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 elements.authModal.classList.remove('open');
             }
         } else {
-            elements.authBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Login / Register`;
+            const loginHtml = `<i class="fa-solid fa-right-to-bracket"></i> <span>Login</span>`;
+            if (elements.authBtn) elements.authBtn.innerHTML = loginHtml;
+            if (mobileAuthBtn) mobileAuthBtn.innerHTML = loginHtml;
+            
             if (elements.navAdmin) elements.navAdmin.style.display = 'none';
         }
     }
