@@ -12,7 +12,7 @@
     <meta property="og:image" content="MARINE LOGO FINAL.png">
     <meta property="og:url" content="https://chikoomusic.com">
     <title>Chikoo Music - Premium Music Streaming</title>
-    <link rel="stylesheet" href="style.css?v=1784166569630">
+    <link rel="stylesheet" href="style.css?v=1784167922590">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="icon" type="image/png" href="MARINE LOGO FINAL.png">
@@ -383,50 +383,6 @@
             </div>
         </div>
 
-        <!-- Fullscreen Player Overlay -->
-        <div id="fullscreen-player" class="fullscreen-player">
-            <div class="fs-background-blur" id="fs-bg-blur"></div>
-            <button class="close-fs-btn" id="btn-close-fs"><i class="fa-solid fa-chevron-down"></i></button>
-            <div class="fs-content">
-                <img id="fs-image" src="MARINE LOGO FINAL.png" alt="Cover" class="fs-cover">
-                <div class="fs-info">
-                    <h2 id="fs-title">No track selected</h2>
-                    <p id="fs-artist">-</p>
-                </div>
-
-                <div class="fs-action-btns">
-                    <button class="action-btn" id="fs-like-btn" title="Like"><i
-                            class="fa-regular fa-heart"></i></button>
-                    <button class="action-btn" id="fs-add-playlist-btn" title="Add to Playlist"><i
-                            class="fa-solid fa-folder-plus"></i></button>
-                    <button class="action-btn" id="fs-lyrics-btn" title="Lyrics"><i
-                            class="fa-solid fa-align-left"></i></button>
-                    <button class="action-btn" id="fs-queue-btn" title="Queue"><i
-                            class="fa-solid fa-list-ul"></i></button>
-                    <button class="action-btn" id="fs-share-btn" title="Share"><i
-                            class="fa-solid fa-share-nodes"></i></button>
-                </div>
-
-                <div class="fs-progress-container progress-container">
-                    <span id="fs-time-current">0:00</span>
-                    <div class="progress-bar-bg" id="fs-progress-bg">
-                        <div class="progress-bar-fill" id="fs-progress-fill"></div>
-                    </div>
-                    <span id="fs-time-total">0:00</span>
-                </div>
-
-                <div class="fs-controls">
-                    <button class="control-btn" id="fs-shuffle-btn" title="Shuffle"><i class="fa-solid fa-shuffle"></i></button>
-                    <button class="control-btn" id="fs-btn-prev"><i class="fa-solid fa-backward-step"></i></button>
-                    <button class="control-btn play-btn" id="fs-btn-play"><i class="fa-solid fa-play"></i></button>
-                    <button class="control-btn" id="fs-btn-next"><i class="fa-solid fa-forward-step"></i></button>
-                    <button class="control-btn" id="fs-repeat-btn" title="Repeat"><i class="fa-solid fa-repeat"></i></button>
-                </div>
-                <div style="text-align:center; margin-top:15px;">
-                    <button class="control-btn glow-btn" id="fs-auto-dj-btn" title="Auto-DJ" style="font-size: 1rem; padding: 8px 15px; border-radius: 20px;"><i class="fa-solid fa-radio"></i> Genre Auto-DJ</button>
-                </div>
-            </div>
-        </div>
 
         <!-- Playlist Selection Modal -->
         <div id="playlist-selection-modal" class="profile-modal">
@@ -437,6 +393,46 @@
                     style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
                     <!-- Playlist options injected here -->
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Player Overlay (outside app-container to avoid flex interference) -->
+    <div id="fullscreen-player" class="fullscreen-player">
+        <div class="fs-background-blur" id="fs-bg-blur"></div>
+        <button class="close-fs-btn" id="btn-close-fs"><i class="fa-solid fa-chevron-down"></i></button>
+        <div class="fs-content">
+            <img id="fs-image" src="MARINE LOGO FINAL.png" alt="Cover" class="fs-cover">
+            <div class="fs-info">
+                <h2 id="fs-title">No track selected</h2>
+                <p id="fs-artist">-</p>
+            </div>
+
+            <div class="fs-action-btns">
+                <button class="action-btn" id="fs-like-btn" title="Like"><i class="fa-regular fa-heart"></i></button>
+                <button class="action-btn" id="fs-add-playlist-btn" title="Add to Playlist"><i class="fa-solid fa-folder-plus"></i></button>
+                <button class="action-btn" id="fs-lyrics-btn" title="Lyrics"><i class="fa-solid fa-align-left"></i></button>
+                <button class="action-btn" id="fs-queue-btn" title="Queue"><i class="fa-solid fa-list-ul"></i></button>
+                <button class="action-btn" id="fs-share-btn" title="Share"><i class="fa-solid fa-share-nodes"></i></button>
+            </div>
+
+            <div class="fs-progress-container progress-container">
+                <span id="fs-time-current">0:00</span>
+                <div class="progress-bar-bg" id="fs-progress-bg">
+                    <div class="progress-bar-fill" id="fs-progress-fill"></div>
+                </div>
+                <span id="fs-time-total">0:00</span>
+            </div>
+
+            <div class="fs-controls">
+                <button class="control-btn" id="fs-shuffle-btn" title="Shuffle"><i class="fa-solid fa-shuffle"></i></button>
+                <button class="control-btn" id="fs-btn-prev"><i class="fa-solid fa-backward-step"></i></button>
+                <button class="control-btn play-btn" id="fs-btn-play"><i class="fa-solid fa-play"></i></button>
+                <button class="control-btn" id="fs-btn-next"><i class="fa-solid fa-forward-step"></i></button>
+                <button class="control-btn" id="fs-repeat-btn" title="Repeat"><i class="fa-solid fa-repeat"></i></button>
+            </div>
+            <div style="text-align:center; margin-top:15px;">
+                <button class="control-btn glow-btn" id="fs-auto-dj-btn" title="Auto-DJ" style="font-size: 1rem; padding: 8px 15px; border-radius: 20px;"><i class="fa-solid fa-radio"></i> Genre Auto-DJ</button>
             </div>
         </div>
     </div>
@@ -533,7 +529,7 @@
         </div>
     </div>
 
-    <script src="api.js?v=1784166569630"></script>
-    <script type="module" src="app.js?v=1784166569630"></script>
+    <script src="api.js?v=1784167922590"></script>
+    <script type="module" src="app.js?v=1784167922590"></script>
 </body>
 </html>
