@@ -178,9 +178,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     // INITIALIZATION
     // =============================================
+    console.log('[DEBUG] DOMContentLoaded fired, calling init()');
     init();
 
     async function init() {
+        console.log('[DEBUG] init() started');
         loadPersistedState();
         fetchGlobalBroadcast();
         
@@ -232,7 +234,9 @@ document.addEventListener('DOMContentLoaded', () => {
             updateAuthUI();
         }
 
+        console.log('[DEBUG] About to call setupEventListeners()');
         setupEventListeners();
+        console.log('[DEBUG] setupEventListeners() completed');
         loadTheme();
         initBannerVideo();
         syncVolumeUI();
@@ -1333,10 +1337,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // EVENT LISTENERS — SET UP ONCE
     // =============================================
     function setupEventListeners() {
+        console.log('[DEBUG] setupEventListeners() entered');
         let isProfileVideoMuted = false;
 
         // --- Theme ---
         const themeBtns = [elements.themeToggle, document.getElementById('mobile-theme-btn')];
+        console.log('[DEBUG] Theme btns:', themeBtns.map(b => b ? b.id : 'null'));
         themeBtns.forEach(btn => {
             if (btn) {
                 btn.addEventListener('click', () => {
@@ -1353,10 +1359,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const langSelector = document.getElementById('custom-lang-selector');
         const langText = document.getElementById('custom-lang-text');
         const langOptions = document.querySelectorAll('.lang-option');
+        console.log('[DEBUG] langSelector:', langSelector, 'langText:', langText, 'langOptions count:', langOptions.length);
 
         if (langSelector) {
             langSelector.addEventListener('click', (e) => {
                 e.stopPropagation();
+                console.log('[DEBUG] Language selector clicked! Toggling open class');
                 langSelector.classList.toggle('open');
             });
         }
@@ -1489,9 +1497,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Mobile Options Toggle ---
         const mobileToggleBtn = document.getElementById('mobile-options-toggle');
         const mobileOverlayMenu = document.getElementById('mobile-overlay-menu');
+        console.log('[DEBUG] mobileToggleBtn:', mobileToggleBtn, 'mobileOverlayMenu:', mobileOverlayMenu);
         if (mobileToggleBtn && mobileOverlayMenu) {
+            console.log('[DEBUG] Attaching hamburger click listener');
             mobileToggleBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                console.log('[DEBUG] Hamburger clicked!');
                 const isShowing = mobileOverlayMenu.style.display === 'flex';
                 mobileOverlayMenu.style.display = isShowing ? 'none' : 'flex';
             });
