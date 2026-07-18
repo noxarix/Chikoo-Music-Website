@@ -213,6 +213,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" });
 
+    // Pagination Grid Renderer
+    async function fetchAndRenderDashboardGrid() {
+        showSkeletons(elements.trendingGrid, 10);
+        const query = state.currentDashboardQuery;
+        let songs = [];
+        const lang = window.currentLanguage || 'global';
+
+        if (query === 'best of arijit singh') { // Dev's Favs
+            document.getElementById('dashboard-pagination').style.display = 'none'; // No pagination for manual list
+            try {
+                const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
+                const docSnap = await getDoc(doc(db, 'global_state', 'devs_favs'));
+                if (docSnap.exists() && docSnap.data().songs) {
+                    songs = docSnap.data().songs;
+                } else {
+                    songs = await AirbeatsAPI.searchSongs("hindi romantic songs", 10); // fallback
+                }
+            } catch (err) {
+                console.error("Failed fetching dev favs from Firebase", err);
+                songs = await AirbeatsAPI.searchSongs("hindi romantic songs", 10); // fallback
+            }
+        } else {
+            document.getElementById('dashboard-pagination').style.display = 'flex';
+            if (query === 'hindi romantic songs' || query === 'trending') {
+                songs = await AirbeatsAPI.getTrendingSongs(lang, state.dashboardPage);
+            } else if (query === 'new releases') {
+                songs = await AirbeatsAPI.searchSongs(lang === 'global' ? 'latest songs' : `latest ${lang} songs`, 20, state.dashboardPage);
+            } else if (query === 'popular hits') {
+                songs = await AirbeatsAPI.searchSongs(lang === 'global' ? 'popular hit songs' : `${lang} hit songs`, 20, state.dashboardPage);
+            } else {
+                songs = await AirbeatsAPI.searchSongs(lang === 'global' ? query : `${lang} ${query}`, 20, state.dashboardPage);
+            }
+        }
+        
+        renderSongs(songs, elements.trendingGrid);
+        if (state.dashboardPage === 1) updateHeroBanner(songs);
+    }
+
+    function updateDashboardPaginationUI() {
+        const pageNum = document.querySelector('#page-numbers-container .current-page');
+        if (pageNum) pageNum.textContent = state.dashboardPage;
+        const prevBtn = document.getElementById('page-prev-btn');
+        if (prevBtn) prevBtn.disabled = state.dashboardPage <= 1;
+    }
+
     init();
 
     async function init() {
@@ -276,10 +321,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show skeleton loaders while fetching
         showSkeletons(elements.trendingGrid, 10);
 
-        // Load trending songs
-        const trending = await AirbeatsAPI.getTrendingSongs();
-        renderSongs(trending, elements.trendingGrid);
-        updateHeroBanner(trending);
+        // Load initial grid with pagination
+        document.getElementById('dashboard-pagination').style.display = 'flex';
+        state.dashboardPage = 1;
+        state.currentDashboardQuery = 'trending';
+        await fetchAndRenderDashboardGrid();
 
         // Observe static elements
         if (typeof revealObserver !== 'undefined') {
@@ -1841,51 +1887,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
         }
-        
-        async function fetchAndRenderDashboardGrid() {
-            showSkeletons(elements.trendingGrid, 10);
-            const query = state.currentDashboardQuery;
-            let songs = [];
-            const lang = window.currentLanguage || 'global';
-
-            if (query === 'best of arijit singh') { // Dev's Favs
-                document.getElementById('dashboard-pagination').style.display = 'none'; // No pagination for manual list
-                try {
-                    const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
-                    const docSnap = await getDoc(doc(db, 'global_state', 'devs_favs'));
-                    if (docSnap.exists() && docSnap.data().songs) {
-                        songs = docSnap.data().songs;
-                    } else {
-                        songs = await AirbeatsAPI.searchSongs("hindi romantic songs", 10); // fallback
-                    }
-                } catch (err) {
-                    console.error("Failed fetching dev favs from Firebase", err);
-                    songs = await AirbeatsAPI.searchSongs("hindi romantic songs", 10); // fallback
-                }
-            } else {
-                document.getElementById('dashboard-pagination').style.display = 'flex';
-                if (query === 'hindi romantic songs' || query === 'trending') {
-                    songs = await AirbeatsAPI.getTrendingSongs(lang, state.dashboardPage);
-                } else if (query === 'new releases') {
-                    songs = await AirbeatsAPI.searchSongs(lang === 'global' ? 'latest songs' : `latest ${lang} songs`, 20, state.dashboardPage);
-                } else if (query === 'popular hits') {
-                    songs = await AirbeatsAPI.searchSongs(lang === 'global' ? 'popular hit songs' : `${lang} hit songs`, 20, state.dashboardPage);
-                } else {
-                    songs = await AirbeatsAPI.searchSongs(lang === 'global' ? query : `${lang} ${query}`, 20, state.dashboardPage);
-                }
-            }
-            
-            renderSongs(songs, elements.trendingGrid);
-            if (state.dashboardPage === 1) updateHeroBanner(songs);
-        }
-
-        function updateDashboardPaginationUI() {
-            const pageNum = document.querySelector('#page-numbers-container .current-page');
-            if (pageNum) pageNum.textContent = state.dashboardPage;
-            const prevBtn = document.getElementById('page-prev-btn');
-            if (prevBtn) prevBtn.disabled = state.dashboardPage <= 1;
-        }
-
         const pagePrevBtn = document.getElementById('page-prev-btn');
         const pageNextBtn = document.getElementById('page-next-btn');
         if (pagePrevBtn) {
