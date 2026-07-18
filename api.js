@@ -38,8 +38,13 @@ class AirbeatsAPI {
         ];
     }
 
-    static async getTrendingSongs() {
-        const results = await this.searchSongs('latest trending hindi bollywood', 50);
+    static async getTrendingSongs(lang = 'global') {
+        let query = 'latest trending hindi bollywood';
+        if (lang === 'english') query = 'latest english hit songs';
+        else if (lang === 'punjabi') query = 'latest punjabi hit songs';
+        else if (lang !== 'global') query = `latest ${lang} hit songs`;
+        
+        const results = await this.searchSongs(query, 50);
         const unique = [];
         const seen = new Set();
         for (const song of results) {

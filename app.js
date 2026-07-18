@@ -455,50 +455,35 @@ document.addEventListener('DOMContentLoaded', () => {
             'video1.mp4', 'video2.mp4', 'video3.mp4', 'video4.mp4', 'video5.mp4', 'video6.mp4', 'video7.mp4', 'video8.mp4', 'videoplayback.mp4'
         ];
 
-        let videoData = { index: 0, timestamp: 0 };
-        try {
-            const stored = localStorage.getItem('chikooBannerVideo');
-            if (stored) videoData = JSON.parse(stored);
-        } catch (e) { }
-
-        const now = Date.now();
-        // 3600000 ms = 1 hour
-        if (now - videoData.timestamp > 3600000) {
-            let newIndex = Math.floor(Math.random() * videoList.length);
-            // If there's an existing video, ensure the new one is different
-            if (videoData.timestamp !== 0 && newIndex === videoData.index && videoList.length > 1) {
-                newIndex = (newIndex + 1) % videoList.length;
-            }
-            videoData.index = newIndex;
-            videoData.timestamp = now;
-            try {
-                localStorage.setItem('chikooBannerVideo', JSON.stringify(videoData));
-            } catch (e) { }
+        // Ensure global synchronization across all clients
+        function getGlobalVideoIndex() {
+            const now = Date.now();
+            // Divide by 3,600,000 (1 hour in ms) to get a global hour counter
+            const currentHour = Math.floor(now / 3600000);
+            return currentHour % videoList.length;
         }
 
-        // Also change it automatically if the user leaves the tab open for an hour
-        setTimeout(() => {
-            initBannerVideo();
-        }, 3600000);
+        let currentIndex = getGlobalVideoIndex();
 
-        elements.bannerVideo.addEventListener('error', () => {
+        // Calculate time until next hour to sync the update
+        const now = Date.now();
+        const msUntilNextHour = 3600000 - (now % 3600000);
+
+        if (window.bannerVideoTimer) clearTimeout(window.bannerVideoTimer);
+        window.bannerVideoTimer = setTimeout(() => {
+            initBannerVideo();
+        }, msUntilNextHour);
+
+        elements.bannerVideo.onerror = () => {
             console.warn('Video not found, skipping to next');
-            let data = { index: 0, timestamp: 0 };
-            try {
-                const stored = localStorage.getItem('chikooBannerVideo');
-                if (stored) data = JSON.parse(stored);
-            } catch (e) { }
-            data.index = (data.index + 1) % videoList.length;
-            try {
-                localStorage.setItem('chikooBannerVideo', JSON.stringify(data));
-            } catch (e) { }
-            elements.bannerVideo.src = `videos/${videoList[data.index]}`;
+            currentIndex = (currentIndex + 1) % videoList.length;
+            elements.bannerVideo.src = `videos/${videoList[currentIndex]}`;
             elements.bannerVideo.load();
             elements.bannerVideo.play().catch(() => { });
-        });
+        };
 
         // Video starts MUTED in HTML (required for autoplay in all browsers)
-        elements.bannerVideo.src = `videos/${videoList[videoData.index]}`;
+        elements.bannerVideo.src = `videos/${videoList[currentIndex]}`;
         elements.bannerVideo.load();
     }
 
@@ -1634,19 +1619,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             songs = await AirbeatsAPI.searchSongs("hindi romantic songs", 10); // fallback
                         }
                     } else if (query === 'hindi romantic songs' || query === 'trending') {
-                        if (lang === 'global') {
-                            songs = await AirbeatsAPI.getTrendingSongs();
-                        } else {
-                            songs = await AirbeatsAPI.searchSongs(`${langPrefix}trending songs`, 20);
-                        }
+                        songs = await AirbeatsAPI.getTrendingSongs(lang);
                     } else if (query === 'top artists') {
-                        songs = await AirbeatsAPI.searchSongs(`${langPrefix}best artists`, 20);
+                        songs = await AirbeatsAPI.searchSongs(lang === 'global' ? 'best artists' : `best ${lang} artists`, 20);
                     } else if (query === 'new releases') {
-                        songs = await AirbeatsAPI.searchSongs(`${langPrefix}latest songs`, 20);
+                        songs = await AirbeatsAPI.searchSongs(lang === 'global' ? 'latest songs' : `latest ${lang} songs`, 20);
                     } else if (query === 'popular hits') {
-                        songs = await AirbeatsAPI.searchSongs(`${langPrefix}popular hit songs`, 20);
+                        songs = await AirbeatsAPI.searchSongs(lang === 'global' ? 'popular hit songs' : `${lang} hit songs`, 20);
                     } else {
-                        songs = await AirbeatsAPI.searchSongs(`${langPrefix}${query}`, 20);
+                        songs = await AirbeatsAPI.searchSongs(lang === 'global' ? query : `${lang} ${query}`, 20);
                     }
                     
                     renderSongs(songs, elements.trendingGrid);
