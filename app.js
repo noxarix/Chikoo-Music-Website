@@ -456,25 +456,31 @@ document.addEventListener('DOMContentLoaded', () => {
             'video4.mp4', 'video5.mp4', 'video6.mp4', 'video7.mp4'
         ];
 
-        let videoData = { index: 0, date: '' };
+        let videoData = { index: 0, timestamp: 0 };
         try {
             const stored = localStorage.getItem('chikooBannerVideo');
             if (stored) videoData = JSON.parse(stored);
         } catch (e) { }
 
-        const today = new Date().toDateString();
-        if (videoData.date !== today) {
+        const now = Date.now();
+        // 3600000 ms = 1 hour
+        if (now - videoData.timestamp > 3600000) {
             let newIndex = Math.floor(Math.random() * videoList.length);
             // If there's an existing video, ensure the new one is different
-            if (videoData.date !== '' && newIndex === videoData.index && videoList.length > 1) {
+            if (videoData.timestamp !== 0 && newIndex === videoData.index && videoList.length > 1) {
                 newIndex = (newIndex + 1) % videoList.length;
             }
             videoData.index = newIndex;
-            videoData.date = today;
+            videoData.timestamp = now;
             try {
                 localStorage.setItem('chikooBannerVideo', JSON.stringify(videoData));
             } catch (e) { }
         }
+
+        // Also change it automatically if the user leaves the tab open for an hour
+        setTimeout(() => {
+            initBannerVideo();
+        }, 3600000);
 
         elements.bannerVideo.addEventListener('error', () => {
             if (!elements.bannerVideo.src.endsWith('video1.mp4')) {
@@ -1340,6 +1346,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     function setupEventListeners() {
         let isProfileVideoMuted = false;
+
+        // --- Keyboard Shortcuts ---
+        document.addEventListener('keydown', (e) => {
+            // Spacebar for play/pause (ignore if typing in input/textarea)
+            if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                togglePlay();
+            }
+        });
+
 
         // --- Theme ---
         const themeBtns = [elements.themeToggle, document.getElementById('mobile-theme-btn')];
