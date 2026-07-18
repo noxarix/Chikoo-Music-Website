@@ -452,20 +452,36 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!elements.bannerVideo) return;
 
         const videoList = [
-            'video1.mp4', 'video2.mp4', 'video3.mp4', 'video4.mp4', 'video5.mp4', 'video6.mp4', 'video7.mp4', 'video8.mp4', 'videoplayback.mp4'
+            'video1.mp4', 'video2.mp4', 'video3.mp4', 'video4.mp4', 'video5.mp4', 'video6.mp4', 'video7.mp4', 'video8.mp4'
         ];
 
         // Ensure global synchronization across all clients
         function getGlobalVideoIndex() {
             const now = Date.now();
-            // Divide by 3,600,000 (1 hour in ms) to get a global hour counter
             const currentHour = Math.floor(now / 3600000);
             return currentHour % videoList.length;
         }
 
         let currentIndex = getGlobalVideoIndex();
 
-        // Calculate time until next hour to sync the update
+        // Optional Firebase sync if owner forces a change
+        if (db) {
+            import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js").then(({ doc, onSnapshot }) => {
+                onSnapshot(doc(db, 'global_state', 'banner'), (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        if (data.index !== undefined && data.index < videoList.length) {
+                            currentIndex = data.index;
+                            elements.bannerVideo.src = `videos/${videoList[currentIndex]}`;
+                            elements.bannerVideo.load();
+                            elements.bannerVideo.play().catch(() => {});
+                        }
+                    }
+                });
+            }).catch(() => {});
+        }
+
+        // Calculate time until next hour to sync the update automatically
         const now = Date.now();
         const msUntilNextHour = 3600000 - (now % 3600000);
 
@@ -482,7 +498,6 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.bannerVideo.play().catch(() => { });
         };
 
-        // Video starts MUTED in HTML (required for autoplay in all browsers)
         elements.bannerVideo.src = `videos/${videoList[currentIndex]}`;
         elements.bannerVideo.load();
     }
@@ -1364,26 +1379,38 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Owner Video Controls ---
         const nextBgBtn = document.getElementById('next-bg-video-btn');
         if (nextBgBtn) {
-            nextBgBtn.addEventListener('click', () => {
+            nextBgBtn.addEventListener('click', async () => {
                 if (!elements.bannerVideo) return;
-                let videoData = { index: 0, timestamp: 0 };
-                try {
-                    const stored = localStorage.getItem('chikooBannerVideo');
-                    if (stored) videoData = JSON.parse(stored);
-                } catch (e) {}
-
                 const videoList = [
-                    'video1.mp4', 'video2.mp4', 'video3.mp4', 'video4.mp4', 'video5.mp4', 'video6.mp4', 'video7.mp4', 'video8.mp4', 'videoplayback.mp4'
+                    'video1.mp4', 'video2.mp4', 'video3.mp4', 'video4.mp4', 'video5.mp4', 'video6.mp4', 'video7.mp4', 'video8.mp4'
                 ];
+                
+                // Get current URL to figure out next index
+                const currentSrc = elements.bannerVideo.src;
+                let currentIndex = 0;
+                for (let i = 0; i < videoList.length; i++) {
+                    if (currentSrc.includes(videoList[i])) {
+                        currentIndex = i;
+                        break;
+                    }
+                }
+                
+                const nextIndex = (currentIndex + 1) % videoList.length;
 
-                videoData.index = (videoData.index + 1) % videoList.length;
-                videoData.timestamp = Date.now();
-                localStorage.setItem('chikooBannerVideo', JSON.stringify(videoData));
-
-                elements.bannerVideo.src = `videos/${videoList[videoData.index]}`;
-                elements.bannerVideo.load();
-                elements.bannerVideo.play().catch(()=>{});
-                showToast(`Switched to Video ${videoData.index + 1}`);
+                // Sync to Firebase if owner
+                if (db) {
+                    try {
+                        const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
+                        await setDoc(doc(db, 'global_state', 'banner'), { index: nextIndex }, { merge: true });
+                        showToast(`Switched to Video ${nextIndex + 1} for everyone!`);
+                    } catch (e) {
+                        showToast('Failed to sync video globally');
+                        // Fallback local
+                        elements.bannerVideo.src = `videos/${videoList[nextIndex]}`;
+                        elements.bannerVideo.load();
+                        elements.bannerVideo.play().catch(()=>{});
+                    }
+                }
             });
         }
 
