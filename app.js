@@ -677,6 +677,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 setQueue(songs, song);
             });
 
+            const addBtn = card.querySelector('.btn-add-card');
+            if(addBtn) addBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openPlaylistSelectionModal(song);
+            });
+            
+            const removeBtn = card.querySelector('.btn-remove-card');
+            if(removeBtn) removeBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const pl = state.customPlaylists.find(p => p.id === playlistId);
+                if (pl) {
+                    pl.songs = pl.songs.filter(s => s.id !== song.id);
+                    saveState();
                     showToast('Removed from playlist');
                     openCustomPlaylistView(pl); // re-render
                 }
