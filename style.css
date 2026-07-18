@@ -2238,11 +2238,13 @@ body::before {
     .player-actions {
         display: none;
     }
-    #shuffle-btn, #repeat-btn {
-        display: none;
-    }
-    .progress-container {
-        display: none; /* Hide progress bar on mobile mini-player */
+    .player-bar #shuffle-btn, 
+    .player-bar #repeat-btn, 
+    .player-bar #seek-bw-btn, 
+    .player-bar #seek-fw-btn, 
+    .player-bar #auto-dj-btn,
+    .player-bar .progress-container {
+        display: none !important;
     }
     .page-title {
         font-size: 24px;

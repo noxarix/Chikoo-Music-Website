@@ -1472,11 +1472,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (state.token) {
                         if (auth) {
                             signOut(auth).then(() => {
+                                state.currentSong = null;
+                                state.queue = [];
+                                state.currentIndex = -1;
+                                elements.audio.pause();
+                                const pb = document.getElementById('player-bar');
+                                if (pb) pb.classList.add('hidden');
+                                saveState();
                                 showToast('Logged out');
                             });
                         } else {
                             state.token = null;
                             state.user = null;
+                            state.currentSong = null;
+                            state.queue = [];
+                            state.currentIndex = -1;
+                            elements.audio.pause();
+                            const pb = document.getElementById('player-bar');
+                            if (pb) pb.classList.add('hidden');
+                            saveState();
                             updateAuthUI();
                         }
                     } else {
