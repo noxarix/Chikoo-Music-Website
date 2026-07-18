@@ -1370,6 +1370,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
 
+        // --- Owner Video Controls ---
+        const nextBgBtn = document.getElementById('next-bg-video-btn');
+        if (nextBgBtn) {
+            nextBgBtn.addEventListener('click', () => {
+                if (!elements.bannerVideo) return;
+                let videoData = { index: 0, timestamp: 0 };
+                try {
+                    const stored = localStorage.getItem('chikooBannerVideo');
+                    if (stored) videoData = JSON.parse(stored);
+                } catch (e) {}
+
+                const videoList = [
+                    'video1.mp4', 'video2.mp4', 'video3.mp4',
+                    'video4.mp4', 'video5.mp4', 'video6.mp4', 'video7.mp4'
+                ];
+
+                videoData.index = (videoData.index + 1) % videoList.length;
+                videoData.timestamp = Date.now();
+                localStorage.setItem('chikooBannerVideo', JSON.stringify(videoData));
+
+                elements.bannerVideo.src = `videos/${videoList[videoData.index]}`;
+                elements.bannerVideo.load();
+                elements.bannerVideo.play().catch(()=>{});
+                showToast(`Switched to Video ${videoData.index + 1}`);
+            });
+        }
+
         // --- Theme ---
         const themeBtns = [elements.themeToggle, document.getElementById('mobile-theme-btn')];
         themeBtns.forEach(btn => {
@@ -2084,6 +2111,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (state.user.role === 'owner' && elements.navAdmin) {
                 elements.navAdmin.style.display = 'flex';
+                if (document.getElementById('owner-video-controls')) {
+                    document.getElementById('owner-video-controls').style.display = 'block';
+                }
             }
             if (elements.authModal) {
                 elements.authModal.classList.remove('open');
@@ -2094,6 +2124,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (mobileAuthBtn) mobileAuthBtn.innerHTML = loginHtml;
             
             if (elements.navAdmin) elements.navAdmin.style.display = 'none';
+            if (document.getElementById('owner-video-controls')) {
+                document.getElementById('owner-video-controls').style.display = 'none';
+            }
         }
     }
 
