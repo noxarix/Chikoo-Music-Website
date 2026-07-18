@@ -1824,7 +1824,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const snap = await getDoc(doc(db, 'global_state', 'devs_favs'));
                                 const existingSongs = snap.exists() ? (snap.data().songs || []) : [];
                                 if (!existingSongs.find(s => s.id === song.id)) {
-                                    existingSongs.push(song);
+                                    existingSongs.unshift(song); // Add to the top so it becomes the Hero Banner!
                                     await setDoc(doc(db, 'global_state', 'devs_favs'), { songs: existingSongs }, { merge: true });
                                     showToast('Song added to Devs Favs!');
                                     loadCurrentDevsFavs();
