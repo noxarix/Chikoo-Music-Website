@@ -716,6 +716,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 openArtistView(artist);
             });
             container.appendChild(card);
+            
+            if (typeof revealObserver !== 'undefined') {
+                revealObserver.observe(card);
+            }
         });
     }
 
@@ -766,6 +770,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 
                 listContainer.appendChild(item);
+
+                if (typeof revealObserver !== 'undefined') {
+                    revealObserver.observe(item);
+                }
             });
         } catch (e) {
             console.error(e);
