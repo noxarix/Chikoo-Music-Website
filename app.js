@@ -2384,5 +2384,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Handle preloader
+    window.addEventListener('load', () => {
+        const preloader = document.getElementById('site-preloader');
+        if (preloader) {
+            // Add a small delay so the animation is visible briefly even on fast connections
+            setTimeout(() => {
+                preloader.classList.add('hide');
+                setTimeout(() => {
+                    preloader.style.display = 'none';
+                }, 800); // Wait for CSS transition to finish
+            }, 1000); 
+        }
+    });
+
     // setupEventListeners() is already called inside init() — do NOT call it again here
 });
