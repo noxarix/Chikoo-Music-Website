@@ -2205,7 +2205,7 @@ body::before {
         gap: 16px;
     }
     .profile-fab-container {
-        bottom: 84px;
+        bottom: 145px;
         right: 16px;
     }
     .profile-fab {
@@ -2335,7 +2335,7 @@ input:focus-visible {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    z-index: 3000;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;

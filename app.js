@@ -1375,8 +1375,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.currentLanguage = val;
                     if (langSelector) langSelector.classList.remove('open');
                     
-                    // Trigger a re-search or reload if needed based on language
-                    // For now we just show a toast
+                    // Trigger a re-search with the new language
+                    const activeBtn = document.querySelector('.quick-option-btn.active');
+                    if (activeBtn) activeBtn.click();
+                    
                     showToast(`Language set to ${text}`);
                 });
             });
@@ -1517,6 +1519,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     showSkeletons(elements.trendingGrid, 10);
                     let query = e.currentTarget.getAttribute('data-query');
+                    const label = e.currentTarget.textContent.trim();
+                    const sectionTitle = document.getElementById('section-title');
+                    if (sectionTitle) sectionTitle.textContent = label;
                     let songs = [];
                     
                     // We will read currentLanguage from the variable defined below
@@ -1562,42 +1567,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateHeroBanner(songs);
                 });
             });
-            
-            // --- Custom Language Selector ---
-            const langSelector = document.getElementById('custom-lang-selector');
-            const langOptions = document.querySelectorAll('.lang-option');
-            const langText = document.getElementById('custom-lang-text');
-            window.currentLanguage = 'global'; // expose globally for quick access in the click handler above
-            
-            if (langSelector) {
-                langSelector.addEventListener('click', (e) => {
-                    langSelector.classList.toggle('open');
-                    e.stopPropagation();
-                });
-                
-                document.addEventListener('click', (e) => {
-                    if (!langSelector.contains(e.target)) {
-                        langSelector.classList.remove('open');
-                    }
-                });
-                
-                langOptions.forEach(opt => {
-                    opt.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        langOptions.forEach(o => o.classList.remove('active'));
-                        opt.classList.add('active');
-                        
-                        window.currentLanguage = opt.getAttribute('data-value');
-                        if (langText) langText.textContent = opt.textContent;
-                        
-                        langSelector.classList.remove('open');
-                        
-                        const activeBtn = document.querySelector('.quick-option-btn.active');
-                        if (activeBtn) activeBtn.click();
-                    });
-                });
-            }
         }
+        
+        // Initialize language state
+        window.currentLanguage = window.currentLanguage || 'global';
 
         // --- Fullscreen Player ---
         if (elements.btnFullscreen) {
@@ -1927,10 +1900,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 elements.lyricsContent.innerHTML = '<div class="placeholder-text"><i class="fa-solid fa-spinner fa-spin"></i> Fetching lyrics...</div>';
                 
                 try {
-                    const response = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(artistName)}/${encodeURIComponent(state.currentSong.name)}`);
-                    const data = await response.json();
-                    if (data.lyrics) {
-                        elements.lyricsContent.textContent = data.lyrics;
+                    // Try lrclib.net first (free, reliable)
+                    let lyricsText = null;
+                    try {
+                        const lrclibResponse = await fetch(`https://lrclib.net/api/get?artist_name=${encodeURIComponent(artistName)}&track_name=${encodeURIComponent(state.currentSong.name)}`);
+                        if (lrclibResponse.ok) {
+                            const lrclibData = await lrclibResponse.json();
+                            // Prefer plain lyrics, fall back to synced lyrics
+                            lyricsText = lrclibData.plainLyrics || (lrclibData.syncedLyrics ? lrclibData.syncedLyrics.replace(/\[\d+:\d+\.\d+\]\s*/g, '') : null);
+                        }
+                    } catch (e) { /* lrclib failed, try fallback */ }
+                    
+                    // Fallback to lyrics.ovh
+                    if (!lyricsText) {
+                        try {
+                            const ovhResponse = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(artistName)}/${encodeURIComponent(state.currentSong.name)}`);
+                            const ovhData = await ovhResponse.json();
+                            if (ovhData.lyrics) lyricsText = ovhData.lyrics;
+                        } catch (e) { /* lyrics.ovh also failed */ }
+                    }
+                    
+                    if (lyricsText) {
+                        elements.lyricsContent.textContent = lyricsText;
                     } else {
                         elements.lyricsContent.innerHTML = '<div class="placeholder-text">Lyrics not found for this song.</div>';
                     }
