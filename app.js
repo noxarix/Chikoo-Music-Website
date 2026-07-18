@@ -234,6 +234,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Failed fetching dev favs from Firebase", err);
                 songs = await AirbeatsAPI.searchSongs("hindi romantic songs", 10); // fallback
             }
+        } else if (query === 'top artists') {
+            document.getElementById('dashboard-pagination').style.display = 'flex';
+            const artistsPerPage = 10;
+            const startIndex = (state.dashboardPage - 1) * artistsPerPage;
+            const paginatedArtists = GLOBAL_ARTISTS.slice(startIndex, startIndex + artistsPerPage);
+            renderArtistGrid(paginatedArtists, elements.trendingGrid);
+            
+            const nextBtn = document.getElementById('page-next-btn');
+            if (nextBtn) nextBtn.disabled = (startIndex + artistsPerPage) >= GLOBAL_ARTISTS.length;
+            return;
         } else {
             document.getElementById('dashboard-pagination').style.display = 'flex';
             if (query === 'hindi romantic songs' || query === 'trending') {
@@ -708,7 +718,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'artist-card reveal';
             card.innerHTML = `
                 <div class="artist-img-wrapper">
-                    <img src="${artist.image}" alt="${artist.name}" class="artist-img" loading="lazy">
+                    <img src="${artist.image}" alt="${artist.name}" class="artist-img" loading="lazy" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(artist.name)}&background=212121&color=fff&size=200';">
                 </div>
                 <h3 class="artist-title">${artist.name}</h3>
             `;
@@ -1885,12 +1895,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         sectionTitle.classList.add('title-enter');
                     }
 
-                    if (query === 'top artists') {
-                        document.getElementById('dashboard-pagination').style.display = 'none';
-                        renderArtistGrid(GLOBAL_ARTISTS, elements.trendingGrid);
-                        return;
-                    }
-                    
                     fetchAndRenderDashboardGrid();
                 });
             });
