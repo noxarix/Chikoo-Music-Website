@@ -452,7 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!elements.bannerVideo) return;
 
         const videoList = [
-            'video1.mp4', 'video2.mp4', 'video3.mp4', 'video4.mp4', 'video5.mp4', 'video6.mp4', 'video7.mp4', 'videoplayback.mp4'
+            'video1.mp4', 'video2.mp4', 'video3.mp4', 'video4.mp4', 'video5.mp4', 'video6.mp4', 'video7.mp4', 'video8.mp4', 'videoplayback.mp4'
         ];
 
         let videoData = { index: 0, timestamp: 0 };
@@ -1388,7 +1388,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (e) {}
 
                 const videoList = [
-                    'video1.mp4', 'video2.mp4', 'video3.mp4', 'video4.mp4', 'video5.mp4', 'video6.mp4', 'video7.mp4', 'videoplayback.mp4'
+                    'video1.mp4', 'video2.mp4', 'video3.mp4', 'video4.mp4', 'video5.mp4', 'video6.mp4', 'video7.mp4', 'video8.mp4', 'videoplayback.mp4'
                 ];
 
                 videoData.index = (videoData.index + 1) % videoList.length;
