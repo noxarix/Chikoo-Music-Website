@@ -1906,7 +1906,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('trending-grid').scrollIntoView({ behavior: 'smooth' });
             });
         }
-        }
         
         // Initialize language state
         window.currentLanguage = window.currentLanguage || 'global';
