@@ -452,8 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!elements.bannerVideo) return;
 
         const videoList = [
-            'video1.mp4', 'video2.mp4', 'video3.mp4',
-            'video4.mp4', 'video5.mp4', 'video6.mp4', 'video7.mp4'
+            'video1.mp4', 'video4.mp4', 'video5.mp4', 'video6.mp4', 'video7.mp4', 'videoplayback.mp4'
         ];
 
         let videoData = { index: 0, timestamp: 0 };
@@ -483,12 +482,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3600000);
 
         elements.bannerVideo.addEventListener('error', () => {
-            if (!elements.bannerVideo.src.endsWith('video1.mp4')) {
-                console.warn('Video not found, falling back to video1.mp4');
-                elements.bannerVideo.src = 'videos/video1.mp4';
-                elements.bannerVideo.load();
-                elements.bannerVideo.play().catch(() => { });
-            }
+            console.warn('Video not found, skipping to next');
+            let data = { index: 0, timestamp: 0 };
+            try {
+                const stored = localStorage.getItem('chikooBannerVideo');
+                if (stored) data = JSON.parse(stored);
+            } catch (e) { }
+            data.index = (data.index + 1) % videoList.length;
+            try {
+                localStorage.setItem('chikooBannerVideo', JSON.stringify(data));
+            } catch (e) { }
+            elements.bannerVideo.src = `videos/${videoList[data.index]}`;
+            elements.bannerVideo.load();
+            elements.bannerVideo.play().catch(() => { });
         });
 
         // Video starts MUTED in HTML (required for autoplay in all browsers)
@@ -1382,8 +1388,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (e) {}
 
                 const videoList = [
-                    'video1.mp4', 'video2.mp4', 'video3.mp4',
-                    'video4.mp4', 'video5.mp4', 'video6.mp4', 'video7.mp4'
+                    'video1.mp4', 'video4.mp4', 'video5.mp4', 'video6.mp4', 'video7.mp4', 'videoplayback.mp4'
                 ];
 
                 videoData.index = (videoData.index + 1) % videoList.length;
