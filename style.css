@@ -1361,7 +1361,8 @@ body::before {
 }
 
 .hero-info .action-btn.primary {
-    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    background: linear-gradient(135deg, #b721ff, #ff217a);
+    color: white;
     border: none;
     box-shadow: 0 4px 15px rgba(183, 33, 255, 0.4);
 }
@@ -2691,4 +2692,133 @@ input:focus-visible {
 @keyframes floatLogo {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
+}
+
+/* ===== ARTIST CARD ===== */
+.artist-card {
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    padding: 10px;
+    transition: all 0.35s ease;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+.artist-card:hover {
+    transform: translateY(-8px) scale(1.05);
+}
+.artist-img-wrapper {
+    width: 100%;
+    padding-bottom: 100%;
+    position: relative;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+.artist-card:hover .artist-img-wrapper {
+    border-color: var(--accent-purple);
+    box-shadow: 0 10px 40px rgba(183, 33, 255, 0.4);
+}
+.artist-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+.artist-card:hover .artist-img {
+    transform: scale(1.1);
+}
+.artist-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    text-align: center;
+    margin: 0;
+}
+
+/* ===== PAGINATION ===== */
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+.page-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.page-btn:hover:not(:disabled) {
+    background: var(--accent-purple);
+    border-color: var(--accent-purple);
+}
+.page-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.page-numbers {
+    display: flex;
+    gap: 8px;
+}
+.page-numbers span {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 14px;
+}
+.page-numbers span.current-page {
+    background: var(--accent-purple);
+    font-weight: bold;
+}
+
+/* ===== ADMIN DEVS FAVS LIST ===== */
+.admin-list-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.05);
+    padding: 10px;
+    border-radius: 8px;
+}
+.admin-list-item img {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+.admin-list-info {
+    flex: 1;
+}
+.admin-list-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    margin: 0 0 4px 0;
+}
+.admin-list-artist {
+    font-size: 12px;
+    color: var(--light-text);
+    margin: 0;
 }

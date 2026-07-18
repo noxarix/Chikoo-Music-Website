@@ -25,6 +25,27 @@ try {
 /**
  * Chikoo Music - app.js
  */
+const GLOBAL_ARTISTS = [
+    { name: 'Arijit Singh', query: 'best of arijit singh', image: 'https://i.scdn.co/image/ab6761610000e5eb0261696c5df3be99da6ed3f3' },
+    { name: 'Shreya Ghoshal', query: 'best of shreya ghoshal', image: 'https://i.scdn.co/image/ab6761610000e5eb662d08a54d3dfde830f3c0ce' },
+    { name: 'The Weeknd', query: 'the weeknd top tracks', image: 'https://i.scdn.co/image/ab6761610000e5eb214f3cf1cbe7139c1e26ffbb' },
+    { name: 'Taylor Swift', query: 'taylor swift popular', image: 'https://i.scdn.co/image/ab6761610000e5eb5a00969a4698c3132a15fbb0' },
+    { name: 'Badshah', query: 'badshah hit songs', image: 'https://i.scdn.co/image/ab6761610000e5ebffcbac78c47146522bd51b03' },
+    { name: 'Ed Sheeran', query: 'ed sheeran hits', image: 'https://i.scdn.co/image/ab6761610000e5eb12a2ef08d00dd7451a6dbed6' },
+    { name: 'Justin Bieber', query: 'justin bieber hits', image: 'https://i.scdn.co/image/ab6761610000e5eb8ae7f2aaa9817a704a87ea36' },
+    { name: 'Pritam', query: 'best of pritam', image: 'https://i.scdn.co/image/ab6761610000e5ebcb6926f44f620555ba444fca' },
+    { name: 'Atif Aslam', query: 'atif aslam hits', image: 'https://i.scdn.co/image/ab6761610000e5ebc40600e02356f90fc528e19b' },
+    { name: 'Darshan Raval', query: 'darshan raval popular', image: 'https://i.scdn.co/image/ab6761610000e5ebbf37fb64d1f4ba40e01764df' },
+    { name: 'A.R. Rahman', query: 'best of ar rahman', image: 'https://i.scdn.co/image/ab6761610000e5ebb19af0ea736c6228d6eb539c' },
+    { name: 'Dua Lipa', query: 'dua lipa hits', image: 'https://i.scdn.co/image/ab6761610000e5eb4f391515bb5649984b4231b0' },
+    { name: 'Sidhu Moose Wala', query: 'sidhu moose wala top', image: 'https://i.scdn.co/image/ab6761610000e5ebd1521a083377755ba0c6396e' },
+    { name: 'Billie Eilish', query: 'billie eilish top tracks', image: 'https://i.scdn.co/image/ab6761610000e5ebd8b9980db67272cb4d2c3daf' },
+    { name: 'Anirudh Ravichander', query: 'anirudh ravichander hits', image: 'https://i.scdn.co/image/ab6761610000e5eb5df2b6b026ccabfbc417070f' },
+    { name: 'Diljit Dosanjh', query: 'diljit dosanjh popular', image: 'https://i.scdn.co/image/ab6761610000e5eb262077e60b135bb47e62a8ef' },
+    { name: 'Drake', query: 'drake hits', image: 'https://i.scdn.co/image/ab6761610000e5eb4293385d324db8558179afd9' },
+    { name: 'Sonu Nigam', query: 'best of sonu nigam', image: 'https://i.scdn.co/image/ab6761610000e5eb5d5b7858c8959f6d4d126fcb' }
+];
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // =============================================
@@ -46,7 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadedSongs: [], // Array of downloaded song objects
         localSongs: [],
         token: localStorage.getItem('chikoo_token') || null,
-        user: JSON.parse(localStorage.getItem('chikoo_user') || 'null')
+        user: JSON.parse(localStorage.getItem('chikoo_user') || 'null'),
+        dashboardPage: 1,
+        searchPage: 1,
+        currentDashboardQuery: 'trending'
     };
 
     // =============================================
@@ -623,6 +647,84 @@ document.addEventListener('DOMContentLoaded', () => {
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
         return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    function renderArtistGrid(artists, container) {
+        if (!container) return;
+        container.innerHTML = '';
+        if (!artists || artists.length === 0) {
+            container.innerHTML = `<div class="placeholder-text">No artists found.</div>`;
+            return;
+        }
+
+        artists.forEach(artist => {
+            const card = document.createElement('button');
+            card.className = 'artist-card reveal';
+            card.innerHTML = `
+                <div class="artist-img-wrapper">
+                    <img src="${artist.image}" alt="${artist.name}" class="artist-img" loading="lazy">
+                </div>
+                <h3 class="artist-title">${artist.name}</h3>
+            `;
+            card.addEventListener('click', () => {
+                openArtistView(artist);
+            });
+            container.appendChild(card);
+        });
+    }
+
+    async function openArtistView(artist) {
+        switchView('artist');
+        document.getElementById('artist-title').textContent = artist.name;
+        document.getElementById('artist-image').src = artist.image;
+        document.getElementById('artist-meta').textContent = 'Top Tracks';
+        
+        const listContainer = document.getElementById('artist-songs-list');
+        listContainer.innerHTML = '<div class="loading-spinner"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
+        
+        try {
+            const songs = await AirbeatsAPI.searchSongs(artist.query, 20);
+            listContainer.innerHTML = '';
+            
+            if (!songs || songs.length === 0) {
+                listContainer.innerHTML = '<div class="placeholder-text">No tracks found.</div>';
+                return;
+            }
+            
+            songs.forEach((song, index) => {
+                const item = document.createElement('div');
+                item.className = 'track-item reveal';
+                item.style.animationDelay = `${index * 0.05}s`;
+                
+                const imgObj = song.image?.find(img => img.quality === '150x150') || song.image?.[0];
+                const imgUrl = imgObj?.url || imgObj?.link || 'MARINE LOGO FINAL.png';
+                const artists = song.artists?.primary?.map(a => a.name).join(', ') || 'Unknown Artist';
+                
+                item.innerHTML = `
+                    <div class="track-number">${index + 1}</div>
+                    <img src="${imgUrl}" alt="${song.name}" class="track-img" loading="lazy">
+                    <div class="track-info">
+                        <div class="track-name">${song.name}</div>
+                        <div class="track-artist">${artists}</div>
+                    </div>
+                    <button class="track-play-btn"><i class="fa-solid fa-play"></i></button>
+                    <button class="track-like-btn ${state.likedSongs.includes(song.id) ? 'liked' : ''}" data-id="${song.id}">
+                        <i class="${state.likedSongs.includes(song.id) ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                    </button>
+                `;
+                
+                item.querySelector('.track-play-btn').addEventListener('click', () => playSong(song, songs, index));
+                item.querySelector('.track-like-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleLike(song.id, item.querySelector('.track-like-btn'));
+                });
+                
+                listContainer.appendChild(item);
+            });
+        } catch (e) {
+            console.error(e);
+            listContainer.innerHTML = '<div class="placeholder-text">Failed to load tracks.</div>';
+        }
     }
 
     function renderSongs(songs, container, isHistory = false, append = false) {
@@ -1572,6 +1674,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const input = document.getElementById('broadcast-input');
                 if (!input.value) return;
                 try {
+                    const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
                     await setDoc(doc(db, 'global', 'config'), { broadcastMessage: input.value }, { merge: true });
                     showToast('Broadcast sent successfully!');
                     input.value = '';
@@ -1579,6 +1682,107 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast('Failed to send broadcast');
                 }
             });
+        }
+
+        initAdminDevsFavs();
+        
+        async function initAdminDevsFavs() {
+            const btnSearch = document.getElementById('btn-search-devs-favs');
+            const searchInput = document.getElementById('devs-favs-search-input');
+            const searchResults = document.getElementById('devs-favs-search-results');
+            const currentList = document.getElementById('devs-favs-current-list');
+            
+            if (!btnSearch || !currentList) return;
+
+            const loadCurrentDevsFavs = async () => {
+                if (!db) return;
+                try {
+                    const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
+                    const snap = await getDoc(doc(db, 'global_state', 'devs_favs'));
+                    const songs = snap.exists() ? (snap.data().songs || []) : [];
+                    currentList.innerHTML = '';
+                    if (songs.length === 0) {
+                        currentList.innerHTML = '<span class="placeholder-text" style="font-size: 13px;">No songs in Devs Favs yet.</span>';
+                        return;
+                    }
+                    songs.forEach(song => {
+                        const div = document.createElement('div');
+                        div.className = 'admin-list-item';
+                        const img = song.image?.find(img => img.quality === '150x150') || song.image?.[0];
+                        div.innerHTML = `
+                            <img src="${img?.url || img?.link || 'MARINE LOGO FINAL.png'}">
+                            <div class="admin-list-info">
+                                <h4 class="admin-list-title">${song.name}</h4>
+                                <p class="admin-list-artist">${song.artists?.primary?.map(a=>a.name).join(', ') || ''}</p>
+                            </div>
+                            <button class="action-btn" title="Remove" style="color: #ff4757;"><i class="fa-solid fa-trash"></i></button>
+                        `;
+                        div.querySelector('button').addEventListener('click', async () => {
+                            const updatedSongs = songs.filter(s => s.id !== song.id);
+                            const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
+                            await setDoc(doc(db, 'global_state', 'devs_favs'), { songs: updatedSongs }, { merge: true });
+                            showToast('Song removed from Devs Favs!');
+                            loadCurrentDevsFavs();
+                        });
+                        currentList.appendChild(div);
+                    });
+                } catch (e) {
+                    console.error("Error loading devs favs admin", e);
+                }
+            };
+            
+            btnSearch.addEventListener('click', async () => {
+                const query = searchInput.value.trim();
+                if (!query) return;
+                searchResults.innerHTML = '<span style="color: white; font-size: 13px;">Searching...</span>';
+                try {
+                    const songs = await AirbeatsAPI.searchSongs(query, 5);
+                    searchResults.innerHTML = '';
+                    if (!songs || songs.length === 0) {
+                        searchResults.innerHTML = '<span style="color: white; font-size: 13px;">No results found.</span>';
+                        return;
+                    }
+                    songs.forEach(song => {
+                        const div = document.createElement('div');
+                        div.className = 'admin-list-item';
+                        const img = song.image?.find(img => img.quality === '150x150') || song.image?.[0];
+                        div.innerHTML = `
+                            <img src="${img?.url || img?.link || 'MARINE LOGO FINAL.png'}">
+                            <div class="admin-list-info">
+                                <h4 class="admin-list-title">${song.name}</h4>
+                                <p class="admin-list-artist">${song.artists?.primary?.map(a=>a.name).join(', ') || ''}</p>
+                            </div>
+                            <button class="action-btn primary" title="Add"><i class="fa-solid fa-plus"></i></button>
+                        `;
+                        div.querySelector('button').addEventListener('click', async () => {
+                            try {
+                                const { doc, getDoc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
+                                const snap = await getDoc(doc(db, 'global_state', 'devs_favs'));
+                                const existingSongs = snap.exists() ? (snap.data().songs || []) : [];
+                                if (!existingSongs.find(s => s.id === song.id)) {
+                                    existingSongs.push(song);
+                                    await setDoc(doc(db, 'global_state', 'devs_favs'), { songs: existingSongs }, { merge: true });
+                                    showToast('Song added to Devs Favs!');
+                                    loadCurrentDevsFavs();
+                                } else {
+                                    showToast('Song already exists in Devs Favs');
+                                }
+                            } catch (e) {
+                                showToast('Failed to add song');
+                            }
+                        });
+                        searchResults.appendChild(div);
+                    });
+                } catch (e) {
+                    searchResults.innerHTML = '<span style="color: #ff4757; font-size: 13px;">Search failed.</span>';
+                }
+            });
+            
+            // Re-load when admin tab is opened
+            const navAdmin = document.getElementById('nav-admin');
+            if (navAdmin) {
+                navAdmin.addEventListener('click', loadCurrentDevsFavs);
+            }
         }
 
         // --- Mobile Options Toggle ---
@@ -1613,6 +1817,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     showSkeletons(elements.trendingGrid, 10);
                     let query = e.currentTarget.getAttribute('data-query');
                     const label = e.currentTarget.textContent.trim();
+                    
+                    // Reset pagination for dashboard queries
+                    state.dashboardPage = 1;
+                    state.currentDashboardQuery = query;
+                    updateDashboardPaginationUI();
+
                     const sectionTitle = document.getElementById('section-title');
                     if (sectionTitle) {
                         sectionTitle.textContent = label;
@@ -1620,47 +1830,82 @@ document.addEventListener('DOMContentLoaded', () => {
                         void sectionTitle.offsetWidth; // trigger reflow
                         sectionTitle.classList.add('title-enter');
                     }
-                    let songs = [];
-                    
-                    // We will read currentLanguage from the variable defined below
-                    const lang = window.currentLanguage || 'global';
-                    const langPrefix = lang === 'global' ? '' : lang + ' ';
 
-                    if (query === 'best of arijit singh') {
-                        // Custom Dev's Favs Playlist
-                        const devQueries = [
-                            "inaam",
-                            "inaam jasleen royal",
-                            "baarishein",
-                            "tum ho kaha",
-                            "moral of the story ashe",
-                            "die for you",
-                            "believer imagine dragons"
-                        ];
-                        try {
-                            const songPromises = devQueries.map(q => AirbeatsAPI.searchSongs(q, 1));
-                            const resultsArray = await Promise.all(songPromises);
-                            songs = resultsArray.map(res => res && res[0]).filter(song => song != null);
-                        } catch (err) {
-                            console.error("Failed fetching dev favs", err);
-                            songs = await AirbeatsAPI.searchSongs("hindi romantic songs", 10); // fallback
-                        }
-                    } else if (query === 'hindi romantic songs' || query === 'trending') {
-                        songs = await AirbeatsAPI.getTrendingSongs(lang);
-                    } else if (query === 'top artists') {
-                        songs = await AirbeatsAPI.searchSongs(lang === 'global' ? 'best artists' : `best ${lang} artists`, 20);
-                    } else if (query === 'new releases') {
-                        songs = await AirbeatsAPI.searchSongs(lang === 'global' ? 'latest songs' : `latest ${lang} songs`, 20);
-                    } else if (query === 'popular hits') {
-                        songs = await AirbeatsAPI.searchSongs(lang === 'global' ? 'popular hit songs' : `${lang} hit songs`, 20);
-                    } else {
-                        songs = await AirbeatsAPI.searchSongs(lang === 'global' ? query : `${lang} ${query}`, 20);
+                    if (query === 'top artists') {
+                        document.getElementById('dashboard-pagination').style.display = 'none';
+                        renderArtistGrid(GLOBAL_ARTISTS, elements.trendingGrid);
+                        return;
                     }
                     
-                    renderSongs(songs, elements.trendingGrid);
-                    updateHeroBanner(songs);
+                    fetchAndRenderDashboardGrid();
                 });
             });
+        }
+        
+        async function fetchAndRenderDashboardGrid() {
+            showSkeletons(elements.trendingGrid, 10);
+            const query = state.currentDashboardQuery;
+            let songs = [];
+            const lang = window.currentLanguage || 'global';
+
+            if (query === 'best of arijit singh') { // Dev's Favs
+                document.getElementById('dashboard-pagination').style.display = 'none'; // No pagination for manual list
+                try {
+                    const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
+                    const docSnap = await getDoc(doc(db, 'global_state', 'devs_favs'));
+                    if (docSnap.exists() && docSnap.data().songs) {
+                        songs = docSnap.data().songs;
+                    } else {
+                        songs = await AirbeatsAPI.searchSongs("hindi romantic songs", 10); // fallback
+                    }
+                } catch (err) {
+                    console.error("Failed fetching dev favs from Firebase", err);
+                    songs = await AirbeatsAPI.searchSongs("hindi romantic songs", 10); // fallback
+                }
+            } else {
+                document.getElementById('dashboard-pagination').style.display = 'flex';
+                if (query === 'hindi romantic songs' || query === 'trending') {
+                    songs = await AirbeatsAPI.getTrendingSongs(lang, state.dashboardPage);
+                } else if (query === 'new releases') {
+                    songs = await AirbeatsAPI.searchSongs(lang === 'global' ? 'latest songs' : `latest ${lang} songs`, 20, state.dashboardPage);
+                } else if (query === 'popular hits') {
+                    songs = await AirbeatsAPI.searchSongs(lang === 'global' ? 'popular hit songs' : `${lang} hit songs`, 20, state.dashboardPage);
+                } else {
+                    songs = await AirbeatsAPI.searchSongs(lang === 'global' ? query : `${lang} ${query}`, 20, state.dashboardPage);
+                }
+            }
+            
+            renderSongs(songs, elements.trendingGrid);
+            if (state.dashboardPage === 1) updateHeroBanner(songs);
+        }
+
+        function updateDashboardPaginationUI() {
+            const pageNum = document.querySelector('#page-numbers-container .current-page');
+            if (pageNum) pageNum.textContent = state.dashboardPage;
+            const prevBtn = document.getElementById('page-prev-btn');
+            if (prevBtn) prevBtn.disabled = state.dashboardPage <= 1;
+        }
+
+        const pagePrevBtn = document.getElementById('page-prev-btn');
+        const pageNextBtn = document.getElementById('page-next-btn');
+        if (pagePrevBtn) {
+            pagePrevBtn.addEventListener('click', () => {
+                if (state.dashboardPage > 1) {
+                    state.dashboardPage--;
+                    updateDashboardPaginationUI();
+                    fetchAndRenderDashboardGrid();
+                    document.getElementById('trending-grid').scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        }
+        if (pageNextBtn) {
+            pageNextBtn.addEventListener('click', () => {
+                state.dashboardPage++;
+                updateDashboardPaginationUI();
+                fetchAndRenderDashboardGrid();
+                document.getElementById('trending-grid').scrollIntoView({ behavior: 'smooth' });
+            });
+        }
         }
         
         // Initialize language state

@@ -2,9 +2,9 @@ class AirbeatsAPI {
     /**
      * Search for songs using Airbeats API with fallback data
      */
-    static async searchSongs(query, limit = 20) {
+    static async searchSongs(query, limit = 20, page = 1) {
         try {
-            const response = await fetch(`https://api.airbeats.xyz/api/search/songs?query=${encodeURIComponent(query)}&limit=${limit}`);
+            const response = await fetch(`https://api.airbeats.xyz/api/search/songs?query=${encodeURIComponent(query)}&limit=${limit}&page=${page}`);
             const json = await response.json();
             if (json.success && json.data && json.data.results && json.data.results.length > 0) {
                 return json.data.results;
@@ -38,13 +38,13 @@ class AirbeatsAPI {
         ];
     }
 
-    static async getTrendingSongs(lang = 'global') {
+    static async getTrendingSongs(lang = 'global', page = 1) {
         let query = 'latest trending hindi bollywood';
         if (lang === 'english') query = 'latest english hit songs';
         else if (lang === 'punjabi') query = 'latest punjabi hit songs';
         else if (lang !== 'global') query = `latest ${lang} hit songs`;
         
-        const results = await this.searchSongs(query, 50);
+        const results = await this.searchSongs(query, 50, page);
         const unique = [];
         const seen = new Set();
         for (const song of results) {
