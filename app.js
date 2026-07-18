@@ -178,6 +178,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     // INITIALIZATION
     // =============================================
+    
+    // Setup Scroll Reveal Observer
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                revealObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" });
+
     init();
 
     async function init() {
@@ -245,6 +256,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const trending = await AirbeatsAPI.getTrendingSongs();
         renderSongs(trending, elements.trendingGrid);
         updateHeroBanner(trending);
+
+        // Observe static elements
+        if (typeof revealObserver !== 'undefined') {
+            document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+        }
 
         loadDownloads();
         
@@ -622,7 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const playlistId = isCustomPlaylist ? isHistory.split(':')[1] : null;
 
             const card = document.createElement('div');
-            card.className = 'song-card';
+            card.className = 'song-card reveal';
             
             let buttonsHtml = `
                 <button class="play-overlay-btn btn-play-card" title="Play"><i class="fa-solid fa-play"></i></button>
@@ -655,19 +671,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 setQueue(songs, song);
             });
 
-            const addBtn = card.querySelector('.btn-add-card');
-            if(addBtn) addBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                openPlaylistSelectionModal(song);
-            });
-            
-            const removeBtn = card.querySelector('.btn-remove-card');
-            if(removeBtn) removeBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const pl = state.customPlaylists.find(p => p.id === playlistId);
-                if (pl) {
-                    pl.songs = pl.songs.filter(s => s.id !== song.id);
-                    saveState();
                     showToast('Removed from playlist');
                     openCustomPlaylistView(pl); // re-render
                 }
@@ -681,6 +684,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             card.addEventListener('click', () => setQueue(songs, song));
             container.appendChild(card);
+            if (typeof revealObserver !== 'undefined') {
+                revealObserver.observe(card);
+            }
         });
     }
 
@@ -1521,7 +1527,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     let query = e.currentTarget.getAttribute('data-query');
                     const label = e.currentTarget.textContent.trim();
                     const sectionTitle = document.getElementById('section-title');
-                    if (sectionTitle) sectionTitle.textContent = label;
+                    if (sectionTitle) {
+                        sectionTitle.textContent = label;
+                        sectionTitle.classList.remove('title-enter');
+                        void sectionTitle.offsetWidth; // trigger reflow
+                        sectionTitle.classList.add('title-enter');
+                    }
                     let songs = [];
                     
                     // We will read currentLanguage from the variable defined below
