@@ -1043,6 +1043,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const pb = document.getElementById('player-bar');
         if (pb) pb.classList.remove('hidden');
+        document.body.classList.add('player-active');
 
         const streamUrlObj = song.downloadUrl?.find(u => u.quality === '320kbps')
             || song.downloadUrl?.[song.downloadUrl.length - 1];
@@ -1661,6 +1662,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 elements.audio.pause();
                                 const pb = document.getElementById('player-bar');
                                 if (pb) pb.classList.add('hidden');
+                                document.body.classList.remove('player-active');
                                 saveState();
                                 showToast('Logged out');
                             });
@@ -1673,6 +1675,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             elements.audio.pause();
                             const pb = document.getElementById('player-bar');
                             if (pb) pb.classList.add('hidden');
+                            document.body.classList.remove('player-active');
                             saveState();
                             updateAuthUI();
                         }
@@ -1946,6 +1949,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updatePlayBtnUI();
                 updateCoverAnimation();
                 if (elements.playerBar) elements.playerBar.classList.add('hidden');
+                document.body.classList.remove('player-active');
             });
         }
         if (elements.btnCloseFs && elements.fsPlayer) {
