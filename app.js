@@ -585,14 +585,24 @@ document.addEventListener('DOMContentLoaded', () => {
             initBannerVideo();
         }, msUntilNextHour);
 
+        let errorCount = 0;
         elements.bannerVideo.onerror = () => {
             console.warn('Video not found, skipping to next');
+            errorCount++;
+            if (errorCount >= videoList.length) {
+                console.error('All banner videos failed to load.');
+                return;
+            }
             currentIndex = (currentIndex + 1) % videoList.length;
             elements.bannerVideo.src = `videos/${videoList[currentIndex]}`;
             elements.bannerVideo.load();
             if (document.getElementById('profile-modal')?.classList.contains('open')) {
                 elements.bannerVideo.play().catch(() => { });
             }
+        };
+
+        elements.bannerVideo.onloadeddata = () => {
+            errorCount = 0; // Reset on success
         };
 
         elements.bannerVideo.src = `videos/${videoList[currentIndex]}`;
@@ -817,7 +827,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!songs || songs.length === 0) {
             if (!append) {
-                container.innerHTML = `<div class="placeholder-text">${isHistory ? "You haven't downloaded any songs yet." : "No songs found."}</div>`;
+                let msg = isHistory ? "You haven't downloaded any songs yet." : "No songs found for this category.";
+                if (state.dashboardPage > 1 && !isHistory) msg = "No more songs found.";
+                container.innerHTML = `<div class="placeholder-text">${msg}</div>`;
             }
             return;
         }
