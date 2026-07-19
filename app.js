@@ -2286,7 +2286,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     switchView('home');
                 }
-                const searchClearBtn = document.getElementById('search-clear-btn');
+            };
+            
+            const searchClearBtn = document.getElementById('search-clear-btn');
             
             if (searchClearBtn) {
                 searchClearBtn.addEventListener('click', () => {
@@ -2900,4 +2902,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // setupEventListeners() is already called inside init() — do NOT call it again here
+
 });
