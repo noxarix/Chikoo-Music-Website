@@ -572,7 +572,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             currentIndex = data.index;
                             elements.bannerVideo.src = `videos/${videoList[currentIndex]}`;
                             elements.bannerVideo.load();
-                            elements.bannerVideo.play().catch(() => {});
+                            if (document.getElementById('profile-modal')?.classList.contains('open')) {
+                                elements.bannerVideo.play().catch(() => {});
+                            }
                         }
                     }
                 });
@@ -593,7 +595,9 @@ document.addEventListener('DOMContentLoaded', () => {
             currentIndex = (currentIndex + 1) % videoList.length;
             elements.bannerVideo.src = `videos/${videoList[currentIndex]}`;
             elements.bannerVideo.load();
-            elements.bannerVideo.play().catch(() => { });
+            if (document.getElementById('profile-modal')?.classList.contains('open')) {
+                elements.bannerVideo.play().catch(() => { });
+            }
         };
 
         elements.bannerVideo.src = `videos/${videoList[currentIndex]}`;
