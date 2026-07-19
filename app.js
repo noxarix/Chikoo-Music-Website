@@ -1866,7 +1866,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error("Error loading devs favs admin", e);
                 }
             };
+              const devsFavsClearBtn = document.getElementById('devs-favs-clear-btn');
             
+            searchInput.addEventListener('input', (e) => {
+                if (devsFavsClearBtn) devsFavsClearBtn.style.display = e.target.value.length > 0 ? 'block' : 'none';
+            });
+            
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.target.blur(); // Stop blinking cursor
+                    btnSearch.click();
+                }
+            });
+
+            if (devsFavsClearBtn) {
+                devsFavsClearBtn.addEventListener('click', () => {
+                    searchInput.value = '';
+                    devsFavsClearBtn.style.display = 'none';
+                    searchResults.innerHTML = '';
+                });
+            }
+
             btnSearch.addEventListener('click', async () => {
                 const query = searchInput.value.trim();
                 if (!query) return;
@@ -2270,7 +2291,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     switchView('home');
                 }
-            };
+                const searchClearBtn = document.getElementById('search-clear-btn');
+            
+            if (searchClearBtn) {
+                searchClearBtn.addEventListener('click', () => {
+                    elements.searchInput.value = '';
+                    searchClearBtn.style.display = 'none';
+                    executeSearch('');
+                    switchView('dashboard');
+                });
+            }
 
             elements.searchInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
@@ -2285,6 +2315,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             elements.searchInput.addEventListener('input', (e) => {
                 const query = e.target.value.trim();
+                if (searchClearBtn) searchClearBtn.style.display = query.length > 0 ? 'block' : 'none';
+                
                 if (query.length > 0) switchView('search');
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => {

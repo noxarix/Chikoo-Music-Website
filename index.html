@@ -12,7 +12,7 @@
     <meta property="og:image" content="MARINE LOGO FINAL.png">
     <meta property="og:url" content="https://chikoomusic.vercel.app">
     <title>Chikoo Music - Premium Music Streaming</title>
-    <link rel="stylesheet" href="style.css?v=1784466139831">
+    <link rel="stylesheet" href="style.css?v=1784466364730">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="icon" type="image/png" href="MARINE LOGO FINAL.png">
@@ -73,6 +73,7 @@
                 <div class="search-bar-container">
                     <i class="fa-solid fa-search"></i>
                     <input type="text" id="search-input" placeholder="Search for songs, artists, albums...">
+                    <i class="fa-solid fa-xmark" id="search-clear-btn" style="display: none; cursor: pointer; color: var(--light-text); padding: 0 10px; font-size: 14px;"></i>
                     <div class="search-shortcut">
                         <kbd>Ctrl</kbd><kbd>K</kbd>
                     </div>
@@ -295,8 +296,9 @@
                         <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 12px; border: 1px solid var(--glass-border);">
                             <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; color: var(--accent-purple);">Manage Dev's Favs</h3>
                             <p style="font-size: 13px; color: var(--light-text); margin-bottom: 10px;">Search for a song to add to the globally visible Dev's Favs section.</p>
-                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                                <input type="text" id="devs-favs-search-input" placeholder="Search for a song (e.g. Tum Hi Ho)..." style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0,0,0,0.2); color: white; outline: none;">
+                            <div style="display: flex; gap: 10px; margin-bottom: 10px; position: relative;">
+                                <input type="text" id="devs-favs-search-input" placeholder="Search for a song (e.g. Tum Hi Ho)..." style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0,0,0,0.2); color: white; outline: none; padding-right: 35px;">
+                                <i class="fa-solid fa-xmark" id="devs-favs-clear-btn" style="position: absolute; right: 110px; top: 12px; cursor: pointer; color: var(--light-text); display: none;"></i>
                                 <button class="action-btn primary" id="btn-search-devs-favs"><i class="fa-solid fa-search"></i> Search</button>
                             </div>
                             <div id="devs-favs-search-results" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div>
@@ -617,7 +619,7 @@
         </div>
     </div>
 
-    <script src="api.js?v=1784466139831"></script>
-    <script type="module" src="app.js?v=1784466139831"></script>
+    <script src="api.js?v=1784466364730"></script>
+    <script type="module" src="app.js?v=1784466364730"></script>
 </body>
 </html>
