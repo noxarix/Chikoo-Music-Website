@@ -1842,7 +1842,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }
                             } catch (e) {
                                 console.error('Failed to add to devs favs:', e);
-                                showToast('Failed to add song');
+                                showToast('Failed: Check Firestore Rules');
                             }
                         });
                         searchResults.appendChild(div);
