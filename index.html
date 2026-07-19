@@ -12,7 +12,7 @@
     <meta property="og:image" content="MARINE LOGO FINAL.png">
     <meta property="og:url" content="https://chikoomusic.vercel.app">
     <title>Chikoo Music - Premium Music Streaming</title>
-    <link rel="stylesheet" href="style.css?v=1784466592301">
+    <link rel="stylesheet" href="style.css?v=1784466802878">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="icon" type="image/png" href="MARINE LOGO FINAL.png">
@@ -31,6 +31,19 @@
             </div>
         </div>
     </div>
+    <script>
+        // Guaranteed fallback to hide preloader after 3 seconds
+        // placed inline so it runs even if app.js fails to load
+        setTimeout(() => {
+            const preloader = document.getElementById('site-preloader');
+            if (preloader) {
+                preloader.classList.add('hide');
+                setTimeout(() => {
+                    preloader.style.display = 'none';
+                }, 800);
+            }
+        }, 3000);
+    </script>
 
     <!-- Animated Background -->
     <div class="animated-bg">
@@ -619,7 +632,7 @@
         </div>
     </div>
 
-    <script src="api.js?v=1784466592301"></script>
-    <script type="module" src="app.js?v=1784466592301"></script>
+    <script src="api.js?v=1784466802878"></script>
+    <script type="module" src="app.js?v=1784466802878"></script>
 </body>
 </html>

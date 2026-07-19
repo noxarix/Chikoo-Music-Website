@@ -24,17 +24,6 @@ try {
     console.warn("Firebase not configured properly:", e);
 }
 
-// Handle preloader strictly after 3 seconds, ignoring any other loading states or errors
-setTimeout(() => {
-    const preloader = document.getElementById('site-preloader');
-    if (preloader) {
-        preloader.classList.add('hide');
-        setTimeout(() => {
-            preloader.style.display = 'none';
-        }, 800); 
-    }
-}, 3000); 
-
 /**
  * Chikoo Music - app.js
  */
