@@ -226,14 +226,14 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
                 const docSnap = await getDoc(doc(db, 'global_state', 'devs_favs'));
-                if (docSnap.exists() && docSnap.data().songs) {
+                if (docSnap.exists() && docSnap.data().songs && docSnap.data().songs.length > 0) {
                     songs = docSnap.data().songs;
                 } else {
-                    songs = await AirbeatsAPI.searchSongs("hindi romantic songs", 10); // fallback
+                    songs = []; 
                 }
             } catch (err) {
                 console.error("Failed fetching dev favs from Firebase", err);
-                songs = await AirbeatsAPI.searchSongs("hindi romantic songs", 10); // fallback
+                songs = []; 
             }
         } else if (query === 'top artists') {
             document.getElementById('dashboard-pagination').style.display = 'flex';
@@ -355,7 +355,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function updateHeroBanner(songs) {
-        if (!elements.heroBanner || !songs || songs.length === 0) return;
+        if (!elements.heroBanner) return;
+        if (!songs || songs.length === 0) {
+            elements.heroBanner.style.display = 'none';
+            return;
+        }
         
         // Pick a top song
         const song = songs[0];
@@ -1825,7 +1829,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const snap = await getDoc(doc(db, 'global_state', 'devs_favs'));
                                 const existingSongs = snap.exists() ? (snap.data().songs || []) : [];
                                 if (!existingSongs.find(s => s.id === song.id)) {
-                                    existingSongs.unshift(song); // Add to the top so it becomes the Hero Banner!
+                                    const cleanSong = JSON.parse(JSON.stringify(song));
+                                    existingSongs.unshift(cleanSong); // Add to the top so it becomes the Hero Banner!
                                     await setDoc(doc(db, 'global_state', 'devs_favs'), { songs: existingSongs }, { merge: true });
                                     showToast('Song added to Devs Favs!');
                                     loadCurrentDevsFavs();
@@ -1833,6 +1838,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     showToast('Song already exists in Devs Favs');
                                 }
                             } catch (e) {
+                                console.error('Failed to add to devs favs:', e);
                                 showToast('Failed to add song');
                             }
                         });
