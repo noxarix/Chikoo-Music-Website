@@ -143,6 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Actions
         btnFullscreen: document.getElementById('btn-fullscreen'),
+        btnClosePlayer: document.getElementById('btn-close-player'),
         btnDownload: document.getElementById('btn-download'),
         btnQueue: document.getElementById('btn-queue'),
         fsQueueBtn: document.getElementById('fs-queue-btn'),
@@ -1929,6 +1930,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (state.currentSong && elements.fsPlayer) {
                     elements.fsPlayer.classList.add('open');
                 }
+            });
+        }
+        
+        if (elements.btnClosePlayer) {
+            elements.btnClosePlayer.addEventListener('click', () => {
+                elements.audio.pause();
+                state.isPlaying = false;
+                updatePlayBtnUI();
+                updateCoverAnimation();
+                if (elements.playerBar) elements.playerBar.classList.add('hidden');
             });
         }
         if (elements.btnCloseFs && elements.fsPlayer) {
