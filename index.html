@@ -12,7 +12,7 @@
     <meta property="og:image" content="MARINE LOGO FINAL.png">
     <meta property="og:url" content="https://chikoomusic.vercel.app">
     <title>Chikoo Music - Premium Music Streaming</title>
-    <link rel="stylesheet" href="style.css?v=1784459029690">
+    <link rel="stylesheet" href="style.css?v=1784461431291">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="icon" type="image/png" href="MARINE LOGO FINAL.png">
@@ -301,6 +301,23 @@
                             </div>
                             <div id="devs-favs-search-results" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div>
                             
+                            <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed rgba(255,255,255,0.2);">
+                                <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 14px; color: var(--accent-red);">Upload Custom Song</h4>
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <input type="text" id="custom-song-title" placeholder="Song Title" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0,0,0,0.3); color: white; outline: none;">
+                                    <input type="text" id="custom-song-artist" placeholder="Artist Name" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0,0,0,0.3); color: white; outline: none;">
+                                    <div>
+                                        <label style="font-size: 12px; color: var(--light-text);">Audio File (MP3):</label>
+                                        <input type="file" id="custom-song-audio" accept="audio/*" style="display: block; margin-top: 5px; color: white;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 12px; color: var(--light-text);">Cover Image (Optional):</label>
+                                        <input type="file" id="custom-song-image" accept="image/*" style="display: block; margin-top: 5px; color: white;">
+                                    </div>
+                                    <button class="action-btn primary" id="btn-upload-custom-song" style="margin-top: 5px;"><i class="fa-solid fa-cloud-arrow-up"></i> Upload & Add to Favs</button>
+                                </div>
+                            </div>
+
                             <h4 style="margin: 10px 0; color: white;">Current Dev's Favs</h4>
                             <div id="devs-favs-current-list" style="display: flex; flex-direction: column; gap: 8px;">
                                 <span class="placeholder-text" style="font-size: 13px;">Loading...</span>
@@ -369,7 +386,7 @@
                 </div>
                 <button class="action-btn" id="btn-fullscreen" title="Full Screen"><i
                         class="fa-solid fa-expand"></i></button>
-                <button class="action-btn" id="btn-close-player" title="Close Player"><i
+                <button class="action-btn" id="btn-close-player" title="Close Player" onclick="document.getElementById('player-bar').classList.add('hidden'); document.body.classList.remove('player-active'); document.getElementById('audio-player').pause(); window.dispatchEvent(new Event('player-closed'));"><i
                         class="fa-solid fa-xmark"></i></button>
             </div>
 
@@ -600,7 +617,7 @@
         </div>
     </div>
 
-    <script src="api.js?v=1784459029690"></script>
-    <script type="module" src="app.js?v=1784459029690"></script>
+    <script src="api.js?v=1784461431291"></script>
+    <script type="module" src="app.js?v=1784461431291"></script>
 </body>
 </html>

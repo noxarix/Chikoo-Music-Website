@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, addDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-storage.js";
 
 // User Firebase config
 const firebaseConfig = {
@@ -13,11 +14,12 @@ const firebaseConfig = {
   measurementId: "G-ZZRSJ14Z2L"
 };
 
-let app, auth, db;
+let app, auth, db, storage;
 try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
+    storage = getStorage(app);
 } catch (e) {
     console.warn("Firebase not configured properly:", e);
 }
@@ -833,6 +835,10 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 buttonsHtml += `<button class="play-overlay-btn btn-add-card" title="Add to Playlist" style="width: 36px; height: 36px; font-size: 14px;"><i class="fa-solid fa-folder-plus"></i></button>`;
             }
+            
+            if (state.user && state.user.role === 'owner') {
+                buttonsHtml += `<button class="play-overlay-btn btn-devs-fav-card" title="Add to Devs Favs" style="width: 36px; height: 36px; font-size: 14px; color: gold;"><i class="fa-solid fa-star"></i></button>`;
+            }
 
             card.innerHTML = `
                 <div class="card-img-wrapper">
@@ -872,10 +878,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            const queueBtn = card.querySelector('.btn-queue-card');
-            if(queueBtn) queueBtn.addEventListener('click', (e) => {
+            const qBtn = card.querySelector('.btn-queue-card');
+            if(qBtn) qBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 addToQueue(song);
+                showToast('Added to queue');
+            });
+
+            const devBtn = card.querySelector('.btn-devs-fav-card');
+            if(devBtn) devBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                try {
+                    const { doc, getDoc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
+                    const snap = await getDoc(doc(db, 'global_state', 'devs_favs'));
+                    const existingSongs = snap.exists() ? (snap.data().songs || []) : [];
+                    if (!existingSongs.find(s => s.id === song.id)) {
+                        const cleanSong = JSON.parse(JSON.stringify(song));
+                        existingSongs.unshift(cleanSong);
+                        await setDoc(doc(db, 'global_state', 'devs_favs'), { songs: existingSongs }, { merge: true });
+                        showToast('Song added to Devs Favs!');
+                        if (typeof loadCurrentDevsFavs === 'function') loadCurrentDevsFavs();
+                    } else {
+                        showToast('Song already exists in Devs Favs');
+                    }
+                } catch (err) {
+                    console.error('Failed to add to devs favs:', err);
+                    showToast('Failed: Check Firestore Rules');
+                }
             });
 
             card.addEventListener('click', () => setQueue(songs, song));
@@ -1124,7 +1153,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCoverAnimation();
     }
 
-    function playNext() {
+    async function playNext() {
         if (state.queue.length === 0) return;
 
         if (state.isShuffled) {
@@ -1139,6 +1168,26 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (state.repeatMode === 'all') {
             state.currentIndex = 0;
         } else {
+            // Autoplay Similar Songs based on last played artist
+            const currentSong = state.queue[state.currentIndex];
+            const artistName = currentSong?.artists?.primary?.[0]?.name || '';
+            if (artistName) {
+                showToast(`Autoplaying similar songs...`);
+                try {
+                    const similarSongs = await AirbeatsAPI.searchSongs(`${artistName} songs`, 10);
+                    // Filter out songs that are already in the queue
+                    const newSongs = similarSongs.filter(s => !state.queue.some(qs => qs.id === s.id));
+                    if (newSongs.length > 0) {
+                        state.queue.push(...newSongs);
+                        state.currentIndex++;
+                        renderQueue();
+                        playSong(state.queue[state.currentIndex]);
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Autoplay failed:", e);
+                }
+            }
             return; // End of queue, no repeat
         }
         playSong(state.queue[state.currentIndex]);
@@ -1857,6 +1906,124 @@ document.addEventListener('DOMContentLoaded', () => {
             if (navAdmin) {
                 navAdmin.addEventListener('click', loadCurrentDevsFavs);
             }
+
+            // Custom Song Upload Logic
+            const btnUploadCustom = document.getElementById('btn-upload-custom-song');
+            if (btnUploadCustom) {
+                btnUploadCustom.addEventListener('click', async () => {
+                    const title = document.getElementById('custom-song-title').value.trim();
+                    const artist = document.getElementById('custom-song-artist').value.trim();
+                    const audioInput = document.getElementById('custom-song-audio');
+                    const imageInput = document.getElementById('custom-song-image');
+
+                    if (!title || !artist || !audioInput.files[0]) {
+                        showToast("Title, Artist, and Audio File are required!");
+                        return;
+                    }
+
+                    if (!storage) {
+                        showToast("Storage is not configured.");
+                        return;
+                    }
+
+                    const audioFile = audioInput.files[0];
+                    const imageFile = imageInput.files && imageInput.files[0];
+                    
+                    btnUploadCustom.disabled = true;
+                    const originalText = btnUploadCustom.innerHTML;
+                    btnUploadCustom.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading...`;
+
+                    try {
+                        const { ref, uploadBytes, getDownloadURL } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-storage.js");
+                        
+                        // 1. Upload Audio
+                        const audioRef = ref(storage, \`custom_songs/audio/\${Date.now()}_\${audioFile.name}\`);
+                        await uploadBytes(audioRef, audioFile);
+                        const audioUrl = await getDownloadURL(audioRef);
+
+                        // 2. Upload Image (if provided)
+                        let imageUrl = 'MARINE LOGO FINAL.png';
+                        if (imageFile) {
+                            const imageRef = ref(storage, \`custom_songs/images/\${Date.now()}_\${imageFile.name}\`);
+                            await uploadBytes(imageRef, imageFile);
+                            imageUrl = await getDownloadURL(imageRef);
+                        }
+
+                        // 3. Create Song Object
+                        const customId = 'custom_' + Date.now();
+                        const newSong = {
+                            id: customId,
+                            name: title,
+                            type: "song",
+                            year: new Date().getFullYear().toString(),
+                            duration: 0,
+                            language: "custom",
+                            hasLyrics: "false",
+                            url: "",
+                            image: [
+                                { quality: "50x50", url: imageUrl },
+                                { quality: "150x150", url: imageUrl },
+                                { quality: "500x500", url: imageUrl }
+                            ],
+                            downloadUrl: [
+                                { quality: "12kbps", url: audioUrl },
+                                { quality: "48kbps", url: audioUrl },
+                                { quality: "96kbps", url: audioUrl },
+                                { quality: "160kbps", url: audioUrl },
+                                { quality: "320kbps", url: audioUrl }
+                            ],
+                            artists: {
+                                primary: [
+                                    {
+                                        id: "custom_artist",
+                                        name: artist,
+                                        role: "primary_artists",
+                                        image: [],
+                                        type: "artist",
+                                        url: ""
+                                    }
+                                ],
+                                featured: [],
+                                all: [
+                                    {
+                                        id: "custom_artist",
+                                        name: artist,
+                                        role: "primary_artists",
+                                        image: [],
+                                        type: "artist",
+                                        url: ""
+                                    }
+                                ]
+                            }
+                        };
+
+                        // 4. Save to Devs Favs
+                        const { doc, getDoc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
+                        const snap = await getDoc(doc(db, 'global_state', 'devs_favs'));
+                        const existingSongs = snap.exists() ? (snap.data().songs || []) : [];
+                        
+                        existingSongs.unshift(newSong);
+                        await setDoc(doc(db, 'global_state', 'devs_favs'), { songs: existingSongs }, { merge: true });
+                        
+                        showToast('Custom song uploaded and added to Devs Favs!');
+                        
+                        // Clear form
+                        document.getElementById('custom-song-title').value = '';
+                        document.getElementById('custom-song-artist').value = '';
+                        document.getElementById('custom-song-audio').value = '';
+                        document.getElementById('custom-song-image').value = '';
+                        
+                        loadCurrentDevsFavs();
+                        
+                    } catch (err) {
+                        console.error("Upload failed:", err);
+                        showToast('Failed: ' + err.message);
+                    } finally {
+                        btnUploadCustom.disabled = false;
+                        btnUploadCustom.innerHTML = originalText;
+                    }
+                });
+            }
         }
 
         // --- Mobile Options Toggle ---
@@ -2094,6 +2261,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     clearTimeout(searchTimeout);
+                    e.target.blur(); // Remove focus to stop blinking cursor
                     const query = e.target.value.trim();
                     if (query.length > 0) switchView('search');
                     executeSearch(query);

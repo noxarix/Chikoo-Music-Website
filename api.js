@@ -6,7 +6,7 @@ class AirbeatsAPI {
         try {
             const response = await fetch(`https://api.airbeats.xyz/api/search/songs?query=${encodeURIComponent(query)}&limit=${limit}&page=${page}`);
             const json = await response.json();
-            if (json.success && json.data && json.data.results && json.data.results.length > 0) {
+            if (json.success && json.data && json.data.results) {
                 return json.data.results;
             }
         } catch (error) {
