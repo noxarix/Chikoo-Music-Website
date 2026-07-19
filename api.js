@@ -39,10 +39,10 @@ class AirbeatsAPI {
     }
 
     static async getTrendingSongs(lang = 'global', page = 1) {
-        let query = 'latest trending hindi bollywood';
-        if (lang === 'english') query = 'latest english hit songs';
-        else if (lang === 'punjabi') query = 'latest punjabi hit songs';
-        else if (lang !== 'global') query = `latest ${lang} hit songs`;
+        let query = 'trending';
+        if (lang === 'english') query = 'english';
+        else if (lang === 'punjabi') query = 'punjabi';
+        else if (lang !== 'global') query = lang;
         
         const results = await this.searchSongs(query, 50, page);
         const unique = [];

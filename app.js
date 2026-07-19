@@ -263,9 +263,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (query === 'hindi romantic songs' || query === 'trending') {
                 songs = await AirbeatsAPI.getTrendingSongs(lang, state.dashboardPage);
             } else if (query === 'new releases') {
-                songs = await AirbeatsAPI.searchSongs(lang === 'global' ? 'latest songs' : `latest ${lang} songs`, 20, state.dashboardPage);
+                songs = await AirbeatsAPI.searchSongs(lang === 'global' ? 'latest' : lang, 20, state.dashboardPage);
             } else if (query === 'popular hits') {
-                songs = await AirbeatsAPI.searchSongs(lang === 'global' ? 'popular hit songs' : `${lang} hit songs`, 20, state.dashboardPage);
+                songs = await AirbeatsAPI.searchSongs(lang === 'global' ? 'popular hits' : lang, 20, state.dashboardPage);
             } else {
                 songs = await AirbeatsAPI.searchSongs(lang === 'global' ? query : `${lang} ${query}`, 20, state.dashboardPage);
             }
