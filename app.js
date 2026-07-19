@@ -2857,18 +2857,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Handle preloader
-    window.addEventListener('load', () => {
-        const preloader = document.getElementById('site-preloader');
-        if (preloader) {
+    // Handle preloader strictly after 3 seconds, ignoring load state
+    const preloader = document.getElementById('site-preloader');
+    if (preloader) {
+        setTimeout(() => {
+            preloader.classList.add('hide');
             setTimeout(() => {
-                preloader.classList.add('hide');
-                setTimeout(() => {
-                    preloader.style.display = 'none';
-                }, 800); 
-            }, 3500); 
-        }
-    });
+                preloader.style.display = 'none';
+            }, 800); 
+        }, 3000); 
+    }
 
     // setupEventListeners() is already called inside init() — do NOT call it again here
 });
