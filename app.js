@@ -24,6 +24,17 @@ try {
     console.warn("Firebase not configured properly:", e);
 }
 
+// Handle preloader strictly after 3 seconds, ignoring any other loading states or errors
+setTimeout(() => {
+    const preloader = document.getElementById('site-preloader');
+    if (preloader) {
+        preloader.classList.add('hide');
+        setTimeout(() => {
+            preloader.style.display = 'none';
+        }, 800); 
+    }
+}, 3000); 
+
 /**
  * Chikoo Music - app.js
  */
@@ -1937,14 +1948,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         const { ref, uploadBytes, getDownloadURL } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-storage.js");
                         
                         // 1. Upload Audio
-                        const audioRef = ref(storage, \`custom_songs/audio/\${Date.now()}_\${audioFile.name}\`);
+                        const audioRef = ref(storage, `custom_songs/audio/${Date.now()}_${audioFile.name}`);
                         await uploadBytes(audioRef, audioFile);
                         const audioUrl = await getDownloadURL(audioRef);
 
                         // 2. Upload Image (if provided)
                         let imageUrl = 'MARINE LOGO FINAL.png';
                         if (imageFile) {
-                            const imageRef = ref(storage, \`custom_songs/images/\${Date.now()}_\${imageFile.name}\`);
+                            const imageRef = ref(storage, `custom_songs/images/${Date.now()}_${imageFile.name}`);
                             await uploadBytes(imageRef, imageFile);
                             imageUrl = await getDownloadURL(imageRef);
                         }
@@ -2855,17 +2866,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             container.innerHTML = `<div class="placeholder-text">Failed to load stats: ${error.message}</div>`;
         }
-    }
-
-    // Handle preloader strictly after 3 seconds, ignoring load state
-    const preloader = document.getElementById('site-preloader');
-    if (preloader) {
-        setTimeout(() => {
-            preloader.classList.add('hide');
-            setTimeout(() => {
-                preloader.style.display = 'none';
-            }, 800); 
-        }, 3000); 
     }
 
     // setupEventListeners() is already called inside init() — do NOT call it again here
