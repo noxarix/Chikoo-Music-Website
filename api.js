@@ -10,32 +10,10 @@ class AirbeatsAPI {
                 return json.data.results;
             }
         } catch (error) {
-            console.warn('API fetch failed (likely running offline or locally). Using fallback data.', error);
+            console.warn('API fetch failed or no more results.', error);
         }
         
-        // Fallback dummy data if API fails or blocks us
-        return [
-            {
-                id: 'dummy1', name: 'Chaleya', artists: { primary: [{ name: 'Arijit Singh' }] },
-                image: [{ quality: '500x500', url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=500&q=80' }],
-                downloadUrl: [{ quality: '320kbps', url: '' }]
-            },
-            {
-                id: 'dummy2', name: 'Heeriye', artists: { primary: [{ name: 'Arijit Singh, Jasleen Royal' }] },
-                image: [{ quality: '500x500', url: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=500&q=80' }],
-                downloadUrl: [{ quality: '320kbps', url: '' }]
-            },
-            {
-                id: 'dummy3', name: 'O Maahi', artists: { primary: [{ name: 'Arijit Singh' }] },
-                image: [{ quality: '500x500', url: 'https://images.unsplash.com/photo-1493225457124-a1a2a5956093?auto=format&fit=crop&w=500&q=80' }],
-                downloadUrl: [{ quality: '320kbps', url: '' }]
-            },
-            {
-                id: 'dummy4', name: 'Tum Se', artists: { primary: [{ name: 'Sachin-Jigar' }] },
-                image: [{ quality: '500x500', url: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=500&q=80' }],
-                downloadUrl: [{ quality: '320kbps', url: '' }]
-            }
-        ];
+        return [];
     }
 
     static async getTrendingSongs(lang = 'global', page = 1) {

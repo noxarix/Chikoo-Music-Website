@@ -272,6 +272,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         renderSongs(songs, elements.trendingGrid);
+        
+        const nextBtn = document.getElementById('page-next-btn');
+        if (nextBtn) {
+            nextBtn.disabled = (!songs || songs.length === 0);
+        }
+        
         if (state.dashboardPage === 1) updateHeroBanner(songs);
     }
 
