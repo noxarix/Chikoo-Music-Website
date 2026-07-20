@@ -398,17 +398,38 @@ document.addEventListener('DOMContentLoaded', () => {
             const snap = await getDoc(configRef);
             if (snap.exists()) {
                 const data = snap.data();
-                if (data.broadcastMessage && localStorage.getItem('closedBroadcast') !== data.broadcastMessage) {
+                if (data.broadcastMessage) {
                     const banner = document.getElementById('broadcast-banner');
                     const text = document.getElementById('broadcast-message-text');
                     const closeBtn = document.getElementById('close-broadcast-btn');
+                    const notifBtn = document.getElementById('notifications-btn');
+                    const notifBadge = document.getElementById('notification-badge');
+                    
                     if (banner && text) {
                         text.textContent = data.broadcastMessage;
-                        banner.style.display = 'flex';
+                        
+                        if (localStorage.getItem('closedBroadcast') !== data.broadcastMessage) {
+                            banner.style.display = 'flex';
+                            if (notifBadge) notifBadge.classList.remove('hidden');
+                        }
+                        
                         if (closeBtn) {
                             closeBtn.onclick = () => {
                                 banner.style.display = 'none';
                                 localStorage.setItem('closedBroadcast', data.broadcastMessage);
+                                if (notifBadge) notifBadge.classList.add('hidden');
+                            };
+                        }
+                        
+                        if (notifBtn) {
+                            notifBtn.onclick = () => {
+                                if (banner.style.display === 'none') {
+                                    banner.style.display = 'flex';
+                                } else {
+                                    banner.style.display = 'none';
+                                    localStorage.setItem('closedBroadcast', data.broadcastMessage);
+                                    if (notifBadge) notifBadge.classList.add('hidden');
+                                }
                             };
                         }
                     }
@@ -556,6 +577,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let currentIndex = getGlobalVideoIndex();
+
+        elements.bannerVideo.addEventListener('ended', () => {
+            currentIndex = (currentIndex + 1) % videoList.length;
+            elements.bannerVideo.src = `videos/${videoList[currentIndex]}`;
+            elements.bannerVideo.load();
+            if (document.getElementById('profile-modal')?.classList.contains('open')) {
+                elements.bannerVideo.play().catch(() => {});
+            }
+        });
 
         // Optional Firebase sync if owner forces a change
         if (db) {
@@ -1225,7 +1255,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (artistName) {
                 showToast(`Autoplaying similar songs...`);
                 try {
-                    const similarSongs = await AirbeatsAPI.searchSongs(`${artistName} songs`, 10);
+                    let similarSongs = await AirbeatsAPI.searchSongs(`${artistName}`, 50);
+                    
+                    // Shuffle to prevent playing the exact same songs every time
+                    similarSongs = similarSongs.sort(() => Math.random() - 0.5);
+                    similarSongs = similarSongs.slice(0, 15);
+                    
                     // Filter out songs that are already in the queue
                     const newSongs = similarSongs.filter(s => !state.queue.some(qs => qs.id === s.id));
                     if (newSongs.length > 0) {

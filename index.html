@@ -12,7 +12,7 @@
     <meta property="og:image" content="MARINE LOGO FINAL.png">
     <meta property="og:url" content="https://chikoomusic.vercel.app">
     <title>Chikoo Music - Premium Music Streaming</title>
-    <link rel="stylesheet" href="style.css?v=1784517054714">
+    <link rel="stylesheet" href="style.css?v=1784526481038">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="icon" type="image/png" href="MARINE LOGO FINAL.png">
@@ -71,6 +71,10 @@
             </ul>
 
             <div class="sidebar-footer" style="display: flex; gap: 10px; padding: 15px; align-items: center; justify-content: center;">
+                <button id="notifications-btn" title="Notifications" style="background: rgba(255,255,255,0.1); border: none; color: var(--text-primary); width: 42px; height: 42px; border-radius: 8px; cursor: pointer; transition: 0.3s; flex-shrink: 0; position: relative;">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="notification-badge hidden" id="notification-badge" style="position:absolute; top:-2px; right:-2px; background:var(--accent-purple); color:white; font-size:10px; width:14px; height:14px; border-radius:50%; display:flex; align-items:center; justify-content:center;">1</span>
+                </button>
                 <button id="theme-btn" title="Toggle Theme" style="background: rgba(255,255,255,0.1); border: none; color: var(--text-primary); width: 42px; height: 42px; border-radius: 8px; cursor: pointer; transition: 0.3s; flex-shrink: 0;">
                     <i class="fa-solid fa-moon"></i>
                 </button>
@@ -381,7 +385,7 @@
                             class="fa-solid fa-rotate-right"></i></button>
                     <button class="control-btn" id="repeat-btn" title="Repeat"><i
                             class="fa-solid fa-repeat"></i></button>
-                    <button class="control-btn glow-btn" id="auto-dj-btn" title="Stream" style="margin-left:10px; font-size: 0.9rem; padding: 0 10px; border-radius: 15px;"><i class="fa-solid fa-radio"></i> Auto-DJ</button>
+                    <button class="control-btn glow-btn" id="auto-dj-btn" title="Stream" style="margin-left:10px; font-size: 0.9rem; padding: 0 10px; border-radius: 15px;"><i class="fa-solid fa-radio"></i> Stream</button>
                 </div>
                 <div class="progress-container">
                     <span id="time-current">0:00</span>
@@ -427,7 +431,7 @@
                 </div>
                 <div class="profile-banner">
                     <!-- Banner video starts unmuted -->
-                    <video src="videos/banner.mp4" loop playsinline class="banner-media" id="banner-video"></video>
+                    <video src="videos/banner.mp4" playsinline class="banner-media" id="banner-video"></video>
                 </div>
                 <div class="profile-info">
                     <div class="profile-avatar-container">
@@ -535,7 +539,7 @@
                 <button class="control-btn" id="fs-repeat-btn" title="Repeat"><i class="fa-solid fa-repeat"></i></button>
             </div>
             <div style="text-align:center; margin-top:15px;">
-                <button class="control-btn glow-btn" id="fs-auto-dj-btn" title="Auto-DJ" style="font-size: 1rem; padding: 8px 15px; border-radius: 20px;"><i class="fa-solid fa-radio"></i> Genre Auto-DJ</button>
+                <button class="control-btn glow-btn" id="fs-auto-dj-btn" title="Stream" style="font-size: 1rem; padding: 8px 15px; border-radius: 20px;"><i class="fa-solid fa-radio"></i> Genre Stream</button>
             </div>
         </div>
     </div>
@@ -593,7 +597,7 @@
     <div id="genre-modal" class="modal-overlay">
         <div class="modal-content glass" style="text-align:center;">
             <button class="close-modal" id="close-genre-modal"><i class="fa-solid fa-xmark"></i></button>
-            <h2>Start Genre Auto-DJ</h2>
+            <h2>Start Genre Stream</h2>
             <p style="color: var(--text-secondary); margin-bottom: 20px;">Endless playback of your favorite genre.</p>
             <div class="genre-grid" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
                 <button class="action-btn glow-btn genre-btn" data-genre="bollywood">Bollywood</button>
@@ -633,6 +637,6 @@
     </div>
 
     <script src="api.js?v=1784483513037"></script>
-    <script type="module" src="app.js?v=1784517054714"></script>
+    <script type="module" src="app.js?v=1784526481038"></script>
 </body>
 </html>
