@@ -770,7 +770,24 @@ document.addEventListener('DOMContentLoaded', () => {
         listContainer.innerHTML = '<div class="loading-spinner"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
         
         try {
-            const songs = await AirbeatsAPI.searchSongs(artist.query, 20);
+            // Fetch more songs to ensure we have enough after filtering
+            let rawSongs = await AirbeatsAPI.searchSongs(artist.query, 40);
+            
+            // Filter strictly by artist name to ensure only their songs show up
+            const artistNameLower = artist.name.toLowerCase();
+            let songs = rawSongs.filter(song => {
+                const artistsStr = (song.artists?.primary?.map(a => a.name).join(', ') || '').toLowerCase();
+                return artistsStr.includes(artistNameLower);
+            });
+            
+            // If filtering removes everything, fallback to raw (maybe it's an alias or group)
+            if (songs.length === 0 && rawSongs.length > 0) {
+                songs = rawSongs;
+            }
+
+            // Cap to 20 to keep UI clean
+            songs = songs.slice(0, 20);
+
             listContainer.innerHTML = '';
             
             if (!songs || songs.length === 0) {
@@ -1808,8 +1825,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Admin View Logic
-        const adminBtn = document.getElementById('btn-refresh-admin');
-        if (adminBtn) adminBtn.addEventListener('click', loadAdminData);
+        // Admin Controls
+        const btnRefreshAdmin = document.getElementById('btn-refresh-admin');
+        if (btnRefreshAdmin) {
+            btnRefreshAdmin.addEventListener('click', loadAdminData);
+        }
+
+        const btnBackArtist = document.getElementById('btn-back-artist');
+        if (btnBackArtist) {
+            btnBackArtist.addEventListener('click', () => {
+                switchView('home');
+            });
+        }
 
         const btnSendBroadcast = document.getElementById('btn-send-broadcast');
         if (btnSendBroadcast) {

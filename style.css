@@ -3214,3 +3214,76 @@ input:focus-visible {
     color: var(--light-text);
     margin: 0;
 }
+/* Artist Track List Styling */
+.track-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    transition: all 0.3s ease;
+    gap: 15px;
+}
+.track-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+.track-number {
+    color: var(--text-secondary);
+    font-size: 14px;
+    width: 25px;
+    text-align: right;
+}
+.track-img {
+    width: 45px;
+    height: 45px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+.track-info {
+    flex: 1;
+    overflow: hidden;
+}
+.track-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+}
+.track-artist {
+    font-size: 13px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.track-play-btn, .track-like-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.track-play-btn:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+.track-like-btn.liked {
+    color: var(--accent-red);
+}
+.track-like-btn:hover {
+    color: var(--accent-red);
+    background: rgba(255, 255, 255, 0.1);
+}
+
