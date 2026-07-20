@@ -253,6 +253,11 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('dashboard-pagination').style.display = 'flex';
             if (query === 'hindi romantic songs' || query === 'trending') {
                 songs = await AirbeatsAPI.getTrendingSongs(lang, state.dashboardPage);
+            } else if (query === 'anime trend') {
+                const animeQueries = ['suzume radwimps', 'naruto opening', 'jujutsu kaisen', 'demon slayer lisa', 'your name radwimps', 'ado film', 'kenshi yonezu', 'yoasobi idol', 'tokyo ghoul unravel', 'attack on titan linked horizon'];
+                const selectedQuery = animeQueries[(state.dashboardPage - 1) % animeQueries.length];
+                songs = await AirbeatsAPI.searchSongs(selectedQuery, 20, 1);
+                if (songs) songs = songs.sort(() => Math.random() - 0.5);
             } else if (query === 'new releases') {
                 songs = await AirbeatsAPI.searchSongs(lang === 'global' ? 'latest' : lang, 20, state.dashboardPage);
             } else if (query === 'popular hits') {
@@ -422,6 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (items.length === 0) {
                             notifList.innerHTML = '<div class="placeholder-text">No new notifications.</div>';
                         } else {
+                            items.sort((a, b) => b.timestamp - a.timestamp);
                             items.forEach(item => {
                                 if (item.timestamp > lastRead) unreadCount++;
                                 
