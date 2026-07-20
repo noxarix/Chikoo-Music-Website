@@ -770,8 +770,20 @@ document.addEventListener('DOMContentLoaded', () => {
         listContainer.innerHTML = '<div class="loading-spinner"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
         
         try {
-            // Fetch more songs to ensure we have enough after filtering
-            let rawSongs = await AirbeatsAPI.searchSongs(artist.query, 40);
+            // Fetch multiple pages to ensure we get 100+ songs for the artist
+            const fetchPromises = [
+                AirbeatsAPI.searchSongs(artist.query, 50, 1),
+                AirbeatsAPI.searchSongs(artist.query, 50, 2),
+                AirbeatsAPI.searchSongs(artist.query, 50, 3)
+            ];
+            
+            const results = await Promise.all(fetchPromises);
+            let rawSongs = [];
+            results.forEach(res => {
+                if (res && res.length > 0) {
+                    rawSongs = rawSongs.concat(res);
+                }
+            });
             
             // Filter strictly by artist name to ensure only their songs show up
             const artistNameLower = artist.name.toLowerCase();
@@ -785,8 +797,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 songs = rawSongs;
             }
 
-            // Cap to 20 to keep UI clean
-            songs = songs.slice(0, 20);
+            // Cap to 120 to keep UI clean
+            songs = songs.slice(0, 120);
 
             listContainer.innerHTML = '';
             
@@ -1626,16 +1638,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupEventListeners() {
         let isProfileVideoMuted = false;
 
-        // --- Keyboard Shortcuts ---
-        document.addEventListener('keydown', (e) => {
-            // Spacebar for play/pause (ignore if typing in input/textarea)
-            if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                e.preventDefault();
-                togglePlay();
-            }
-        });
-
-
         // --- Owner Video Controls ---
         const nextBgBtn = document.getElementById('next-bg-video-btn');
         if (nextBgBtn) {
@@ -2181,10 +2183,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (elements.btnClosePlayer) {
             elements.btnClosePlayer.addEventListener('click', () => {
-                elements.audio.pause();
-                state.isPlaying = false;
-                updatePlayBtnUI();
-                updateCoverAnimation();
+                if (state.isPlaying) {
+                    elements.audio.pause();
+                    state.isPlaying = false;
+                    updatePlayBtnUI();
+                    updateCoverAnimation();
+                }
                 if (elements.playerBar) elements.playerBar.classList.add('hidden');
                 document.body.classList.remove('player-active');
             });
