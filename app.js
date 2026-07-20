@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         user: JSON.parse(localStorage.getItem('chikoo_user') || 'null'),
         dashboardPage: 1,
         searchPage: 1,
-        currentDashboardQuery: 'trending',
+        currentDashboardQuery: 'anime trend',
         isStreamMode: false,
         streamContext: null
     };
@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Load initial grid with pagination
         document.getElementById('dashboard-pagination').style.display = 'flex';
         state.dashboardPage = 1;
-        state.currentDashboardQuery = 'trending';
+        state.currentDashboardQuery = 'anime trend';
         await fetchAndRenderDashboardGrid();
 
         // Observe static elements
@@ -2489,8 +2489,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     clearTimeout(searchTimeout);
                     e.target.blur(); // Remove focus to stop blinking cursor
                     const query = e.target.value.trim();
-                    if (query.length > 0) switchView('search');
-                    executeSearch(query);
+                    if (query.length > 0) {
+                        switchView('search');
+                        executeSearch(query);
+                    } else {
+                        switchView('dashboard');
+                    }
                 }
             });
 
@@ -2498,11 +2502,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const query = e.target.value.trim();
                 if (searchClearBtn) searchClearBtn.style.display = query.length > 0 ? 'block' : 'none';
                 
-                if (query.length > 0) switchView('search');
                 clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    executeSearch(query);
-                }, 400);
+                if (query.length > 0) {
+                    switchView('search');
+                    searchTimeout = setTimeout(() => {
+                        executeSearch(query);
+                    }, 400);
+                } else {
+                    switchView('dashboard');
+                }
             });
         }
 
