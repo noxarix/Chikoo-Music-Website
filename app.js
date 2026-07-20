@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (query === 'hindi romantic songs' || query === 'trending') {
                 songs = await AirbeatsAPI.getTrendingSongs(lang, state.dashboardPage);
             } else if (query === 'anime trend') {
-                const animeQueries = ['suzume radwimps', 'naruto opening', 'jujutsu kaisen', 'demon slayer lisa', 'your name radwimps', 'ado film', 'kenshi yonezu', 'yoasobi idol', 'tokyo ghoul unravel', 'attack on titan linked horizon'];
+                const animeQueries = ['suzume', 'naruto', 'jujutsu kaisen', 'demon slayer', 'your name', 'ado', 'kenshi yonezu', 'yoasobi', 'tokyo ghoul', 'attack on titan', 'radwimps', 'anime opening'];
                 const selectedQuery = animeQueries[(state.dashboardPage - 1) % animeQueries.length];
                 songs = await AirbeatsAPI.searchSongs(selectedQuery, 20, 1);
                 if (songs) songs = songs.sort(() => Math.random() - 0.5);
@@ -408,17 +408,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('lastReadNotification', Date.now().toString());
             }
 
+            const notifBadge = document.getElementById('notification-badge');
+            const notifList = document.getElementById('notifications-list');
+            const notifBtn = document.getElementById('notifications-btn');
+            const notifModal = document.getElementById('notifications-modal');
+            const closeNotifBtn = document.getElementById('close-notifications-modal');
+
+            // Attach event listeners exactly once
+            if (notifBtn) {
+                notifBtn.addEventListener('click', () => {
+                    if (notifModal) {
+                        notifModal.classList.add('open');
+                        notifBadge?.classList.add('hidden');
+                        
+                        const latestTs = notifList?.dataset.latestTs;
+                        if (latestTs) {
+                            localStorage.setItem('lastReadNotification', latestTs);
+                        }
+                    }
+                });
+            }
+            if (closeNotifBtn) {
+                closeNotifBtn.addEventListener('click', () => {
+                    if (notifModal) notifModal.classList.remove('open');
+                });
+            }
+
             onSnapshot(notifRef, (snap) => {
                 if (snap.exists()) {
                     const data = snap.data();
                     const items = data.items || [];
                     const lastRead = parseInt(localStorage.getItem('lastReadNotification') || '0', 10);
-                    
-                    const notifBadge = document.getElementById('notification-badge');
-                    const notifList = document.getElementById('notifications-list');
-                    const notifBtn = document.getElementById('notifications-btn');
-                    const notifModal = document.getElementById('notifications-modal');
-                    const closeNotifBtn = document.getElementById('close-notifications-modal');
                     
                     let unreadCount = 0;
                     
@@ -428,6 +448,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             notifList.innerHTML = '<div class="placeholder-text">No new notifications.</div>';
                         } else {
                             items.sort((a, b) => b.timestamp - a.timestamp);
+                            notifList.dataset.latestTs = items[0].timestamp.toString();
+                            
                             items.forEach(item => {
                                 if (item.timestamp > lastRead) unreadCount++;
                                 
@@ -453,34 +475,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     
                     if (notifBadge) {
+                        const previousCount = parseInt(notifBadge.textContent) || 0;
                         if (unreadCount > 0) {
                             notifBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
                             notifBadge.classList.remove('hidden');
+                            
+                            // Trigger animation if count increased
+                            if (unreadCount > previousCount) {
+                                notifBadge.classList.remove('badge-anim');
+                                void notifBadge.offsetWidth; // trigger reflow
+                                notifBadge.classList.add('badge-anim');
+                            }
                         } else {
                             notifBadge.classList.add('hidden');
                         }
-                    }
-                    
-                    const openNotifModal = () => {
-                        if (notifModal) {
-                            notifModal.classList.add('open');
-                            notifBadge?.classList.add('hidden');
-                            if (items.length > 0) {
-                                localStorage.setItem('lastReadNotification', items[0].timestamp.toString());
-                            }
-                        }
-                    };
-                    
-                    if (notifBtn) {
-                        const newBtn = notifBtn.cloneNode(true);
-                        notifBtn.parentNode.replaceChild(newBtn, notifBtn);
-                        newBtn.addEventListener('click', openNotifModal);
-                    }
-                    
-                    if (closeNotifBtn) {
-                        const newClose = closeNotifBtn.cloneNode(true);
-                        closeNotifBtn.parentNode.replaceChild(newClose, closeNotifBtn);
-                        newClose.addEventListener('click', () => notifModal.classList.remove('open'));
                     }
                 }
             });
