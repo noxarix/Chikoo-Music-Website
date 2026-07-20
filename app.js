@@ -72,7 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
         user: JSON.parse(localStorage.getItem('chikoo_user') || 'null'),
         dashboardPage: 1,
         searchPage: 1,
-        currentDashboardQuery: 'trending'
+        currentDashboardQuery: 'trending',
+        isStreamMode: false,
+        streamContext: null
     };
 
     // =============================================
@@ -281,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function init() {
         loadPersistedState();
-        fetchGlobalBroadcast();
+        initNotifications();
         
         if (auth) {
             onAuthStateChanged(auth, async (user) => {
@@ -391,52 +393,115 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.heroBanner.style.display = 'flex';
     }
 
-    async function fetchGlobalBroadcast() {
+    async function initNotifications() {
         if (!db) return;
         try {
-            const configRef = doc(db, 'global', 'config');
-            const snap = await getDoc(configRef);
-            if (snap.exists()) {
-                const data = snap.data();
-                if (data.broadcastMessage) {
-                    const banner = document.getElementById('broadcast-banner');
-                    const text = document.getElementById('broadcast-message-text');
-                    const closeBtn = document.getElementById('close-broadcast-btn');
-                    const notifBtn = document.getElementById('notifications-btn');
-                    const notifBadge = document.getElementById('notification-badge');
+            const { doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
+            const notifRef = doc(db, 'global_state', 'notifications');
+            
+            if (!localStorage.getItem('lastReadNotification')) {
+                localStorage.setItem('lastReadNotification', Date.now().toString());
+            }
+
+            onSnapshot(notifRef, (snap) => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const items = data.items || [];
+                    const lastRead = parseInt(localStorage.getItem('lastReadNotification') || '0', 10);
                     
-                    if (banner && text) {
-                        text.textContent = data.broadcastMessage;
-                        
-                        if (localStorage.getItem('closedBroadcast') !== data.broadcastMessage) {
-                            banner.style.display = 'flex';
-                            if (notifBadge) notifBadge.classList.remove('hidden');
-                        }
-                        
-                        if (closeBtn) {
-                            closeBtn.onclick = () => {
-                                banner.style.display = 'none';
-                                localStorage.setItem('closedBroadcast', data.broadcastMessage);
-                                if (notifBadge) notifBadge.classList.add('hidden');
-                            };
-                        }
-                        
-                        if (notifBtn) {
-                            notifBtn.onclick = () => {
-                                if (banner.style.display === 'none') {
-                                    banner.style.display = 'flex';
-                                } else {
-                                    banner.style.display = 'none';
-                                    localStorage.setItem('closedBroadcast', data.broadcastMessage);
-                                    if (notifBadge) notifBadge.classList.add('hidden');
-                                }
-                            };
+                    const notifBadge = document.getElementById('notification-badge');
+                    const notifList = document.getElementById('notifications-list');
+                    const notifBtn = document.getElementById('notifications-btn');
+                    const notifModal = document.getElementById('notifications-modal');
+                    const closeNotifBtn = document.getElementById('close-notifications-modal');
+                    
+                    let unreadCount = 0;
+                    
+                    if (notifList) {
+                        notifList.innerHTML = '';
+                        if (items.length === 0) {
+                            notifList.innerHTML = '<div class="placeholder-text">No new notifications.</div>';
+                        } else {
+                            items.forEach(item => {
+                                if (item.timestamp > lastRead) unreadCount++;
+                                
+                                const div = document.createElement('div');
+                                div.style.padding = '10px';
+                                div.style.background = 'rgba(255,255,255,0.05)';
+                                div.style.borderRadius = '8px';
+                                div.style.borderLeft = '3px solid ' + (item.type === 'broadcast' ? '#00d2ff' : '#b721ff');
+                                div.style.fontSize = '14px';
+                                
+                                const timeStr = new Date(item.timestamp).toLocaleString();
+                                
+                                div.innerHTML = `
+                                    <div style="font-weight: bold; margin-bottom: 4px; color: white;">
+                                        ${item.type === 'broadcast' ? '<i class="fa-solid fa-bullhorn"></i> Global Broadcast' : '<i class="fa-solid fa-star"></i> Devs Favs Update'}
+                                    </div>
+                                    <div style="color: var(--light-text);">${item.message}</div>
+                                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 5px;">${timeStr}</div>
+                                `;
+                                notifList.appendChild(div);
+                            });
                         }
                     }
+                    
+                    if (notifBadge) {
+                        if (unreadCount > 0) {
+                            notifBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                            notifBadge.classList.remove('hidden');
+                        } else {
+                            notifBadge.classList.add('hidden');
+                        }
+                    }
+                    
+                    const openNotifModal = () => {
+                        if (notifModal) {
+                            notifModal.classList.add('open');
+                            notifBadge?.classList.add('hidden');
+                            if (items.length > 0) {
+                                localStorage.setItem('lastReadNotification', items[0].timestamp.toString());
+                            }
+                        }
+                    };
+                    
+                    if (notifBtn) {
+                        const newBtn = notifBtn.cloneNode(true);
+                        notifBtn.parentNode.replaceChild(newBtn, notifBtn);
+                        newBtn.addEventListener('click', openNotifModal);
+                    }
+                    
+                    if (closeNotifBtn) {
+                        const newClose = closeNotifBtn.cloneNode(true);
+                        closeNotifBtn.parentNode.replaceChild(newClose, closeNotifBtn);
+                        newClose.addEventListener('click', () => notifModal.classList.remove('open'));
+                    }
                 }
-            }
+            });
         } catch (e) {
-            console.warn("Could not fetch broadcast", e);
+            console.warn("Could not fetch notifications", e);
+        }
+    }
+    
+    async function pushNotification(type, message) {
+        if (!db) return;
+        try {
+            const { doc, getDoc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
+            const notifRef = doc(db, 'global_state', 'notifications');
+            const snap = await getDoc(notifRef);
+            let items = snap.exists() ? (snap.data().items || []) : [];
+            
+            items.unshift({
+                id: Date.now().toString() + Math.floor(Math.random()*1000),
+                type,
+                message,
+                timestamp: Date.now()
+            });
+            
+            if (items.length > 20) items = items.slice(0, 20);
+            await setDoc(notifRef, { items }, { merge: true });
+        } catch(e) {
+            console.error("Failed to push notification", e);
         }
     }
 
@@ -977,6 +1042,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const cleanSong = JSON.parse(JSON.stringify(song));
                         existingSongs.unshift(cleanSong);
                         await setDoc(doc(db, 'global_state', 'devs_favs'), { songs: existingSongs }, { merge: true });
+                        await pushNotification('dev_fav', `New Song Added: ${cleanSong.name} by ${cleanSong.artists?.primary?.[0]?.name || 'Unknown'}`);
                         showToast('Song added to Devs Favs!');
                         if (typeof loadCurrentDevsFavs === 'function') loadCurrentDevsFavs();
                     } else {
@@ -1139,6 +1205,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setQueue(songs, currentSong) {
+        state.isStreamMode = false;
+        state.streamContext = null;
         state.queue = [...songs];
         state.currentIndex = state.queue.findIndex(s => s.id === currentSong.id);
         playSong(currentSong);
@@ -1236,6 +1304,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function playNext() {
         if (state.queue.length === 0) return;
+
+        if (state.isStreamMode && state.streamContext) {
+            // Stream Mode: True Radio Experience based on context + previous song
+            const currentSong = state.queue[state.currentIndex];
+            let searchContext = state.streamContext.genre;
+            
+            if (currentSong && currentSong.artists && currentSong.artists.primary) {
+                const artistName = currentSong.artists.primary[0].name;
+                searchContext = `${artistName} ${state.streamContext.genre}`;
+            }
+
+            // Language handling
+            let searchLang = state.streamContext.lang;
+            if (searchLang === 'global' || searchLang === 'surprise') {
+                const options = ['hindi', 'english', 'punjabi', 'tamil', 'telugu', 'marathi', 'gujarati', 'bengali', 'kannada', 'bhojpuri', 'malayalam', 'urdu', 'haryanvi', 'rajasthani', 'odia', 'assamese'];
+                searchLang = options[Math.floor(Math.random() * options.length)];
+            }
+            
+            const query = `${searchContext} ${searchLang}`;
+            showToast('Loading next stream track...');
+            try {
+                let streamSongs = await AirbeatsAPI.searchSongs(query, 30);
+                if (streamSongs && streamSongs.length > 0) {
+                    streamSongs = streamSongs.sort(() => Math.random() - 0.5);
+                    const newSongs = streamSongs.filter(s => !state.queue.some(qs => qs.id === s.id));
+                    if (newSongs.length > 0) {
+                        state.queue.push(newSongs[0]); // Add only one at a time for true stream feel
+                        state.currentIndex++;
+                        renderQueue();
+                        playSong(state.queue[state.currentIndex]);
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error("Stream fetch failed:", e);
+            }
+        }
 
         if (state.isShuffled) {
             // Random next, but not the same song
@@ -1881,8 +1986,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const input = document.getElementById('broadcast-input');
                 if (!input.value) return;
                 try {
-                    const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
-                    await setDoc(doc(db, 'global', 'config'), { broadcastMessage: input.value }, { merge: true });
+                    await pushNotification('broadcast', input.value);
                     showToast('Broadcast sent successfully!');
                     input.value = '';
                 } catch (e) {
@@ -1991,6 +2095,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     const cleanSong = JSON.parse(JSON.stringify(song));
                                     existingSongs.unshift(cleanSong); // Add to the top so it becomes the Hero Banner!
                                     await setDoc(doc(db, 'global_state', 'devs_favs'), { songs: existingSongs }, { merge: true });
+                                    await pushNotification('dev_fav', `New Song Added: ${cleanSong.name} by ${cleanSong.artists?.primary?.[0]?.name || 'Unknown'}`);
                                     showToast('Song added to Devs Favs!');
                                     loadCurrentDevsFavs();
                                 } else {
@@ -2111,6 +2216,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         existingSongs.unshift(newSong);
                         await setDoc(doc(db, 'global_state', 'devs_favs'), { songs: existingSongs }, { merge: true });
+                        await pushNotification('dev_fav', `New Custom Song: ${newSong.name} by ${newSong.artists?.primary?.[0]?.name || 'Unknown'}`);
                         
                         showToast('Custom song uploaded and added to Devs Favs!');
                         
@@ -2673,13 +2779,30 @@ document.addEventListener('DOMContentLoaded', () => {
             updateCoverAnimation();
         });
 
-        // --- Seek (click on progress bar) ---
-        if (elements.progressBg) {
-            elements.progressBg.addEventListener('click', (e) => handleSeek(e, elements.progressBg));
+        // --- Seek and Scrub on progress bar ---
+        function setupScrubbing(bgElement) {
+            if (!bgElement) return;
+            let isScrubbing = false;
+            
+            const updateProgress = (e) => {
+                if (!state.currentSong || !elements.audio.duration) return;
+                const rect = bgElement.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+                elements.audio.currentTime = percent * elements.audio.duration;
+            };
+
+            bgElement.addEventListener('mousedown', (e) => { isScrubbing = true; updateProgress(e); });
+            window.addEventListener('mousemove', (e) => { if (isScrubbing) updateProgress(e); });
+            window.addEventListener('mouseup', () => { isScrubbing = false; });
+
+            bgElement.addEventListener('touchstart', (e) => { isScrubbing = true; updateProgress(e); });
+            window.addEventListener('touchmove', (e) => { if (isScrubbing) updateProgress(e); });
+            window.addEventListener('touchend', () => { isScrubbing = false; });
         }
-        if (elements.fsProgressBg) {
-            elements.fsProgressBg.addEventListener('click', (e) => handleSeek(e, elements.fsProgressBg));
-        }
+
+        setupScrubbing(elements.progressBg);
+        setupScrubbing(elements.fsProgressBg);
 
         // --- Click on Now Playing area to open fullscreen ---
         const npArea = document.querySelector('.now-playing');
@@ -2790,40 +2913,83 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (elements.genreBtns) {
         elements.genreBtns.forEach(btn => {
-            btn.addEventListener('click', async (e) => {
+            btn.addEventListener('click', (e) => {
                 const genre = e.target.getAttribute('data-genre');
                 elements.genreModal.classList.remove('open');
-                showToast(`Starting Auto-DJ for ${genre}...`);
                 
-                try {
-                    const songs = await AirbeatsAPI.searchSongs(genre + ' songs', 50);
+                const startStream = async () => {
+                    showToast(`Starting Stream for ${genre}...`);
+                    state.isStreamMode = true;
+                    state.streamContext = { genre, lang: window.currentLanguage || 'global' };
                     
-                    const unique = [];
-                    const seen = new Set();
-                    if (songs) {
-                        for (const song of songs) {
-                            const name = song.name.toLowerCase().trim();
-                            const artist = song.artists?.primary?.[0]?.name?.toLowerCase().trim() || '';
-                            const uniqueKey = `${name}-${artist}`;
-                            if (!seen.has(uniqueKey)) {
-                                seen.add(uniqueKey);
-                                unique.push(song);
+                    try {
+                        let query = genre + ' songs';
+                        if (window.currentLanguage && window.currentLanguage !== 'global') {
+                            query += ' ' + window.currentLanguage;
+                        }
+                        
+                        const songs = await AirbeatsAPI.searchSongs(query, 50);
+                        
+                        const unique = [];
+                        const seen = new Set();
+                        if (songs) {
+                            for (const song of songs) {
+                                const name = song.name.toLowerCase().trim();
+                                const artist = song.artists?.primary?.[0]?.name?.toLowerCase().trim() || '';
+                                const uniqueKey = `${name}-${artist}`;
+                                if (!seen.has(uniqueKey)) {
+                                    seen.add(uniqueKey);
+                                    unique.push(song);
+                                }
                             }
                         }
-                    }
 
-                    if (unique.length > 0) {
-                        state.queue = unique;
-                        state.currentIndex = 0;
-                        state.isShuffled = true;
-                        syncShuffleRepeatUI();
-                        playSong(state.queue[state.currentIndex]);
-                        showToast(`Playing ${unique.length} ${genre} tracks!`);
-                    } else {
-                        showToast(`Could not find songs for ${genre}.`);
+                        if (unique.length > 0) {
+                            unique.sort(() => Math.random() - 0.5);
+                            state.queue = unique.slice(0, 1); // Start with just one song
+                            state.currentIndex = 0;
+                            state.isShuffled = false;
+                            syncShuffleRepeatUI();
+                            playSong(state.queue[state.currentIndex]);
+                            showToast(`Stream Started!`);
+                        } else {
+                            showToast(`Could not find songs for ${genre}.`);
+                            state.isStreamMode = false;
+                        }
+                    } catch (error) {
+                        showToast('Failed to start Stream.');
+                        state.isStreamMode = false;
                     }
-                } catch (error) {
-                    showToast('Failed to start Auto-DJ.');
+                };
+
+                if (state.queue.length > 0) {
+                    const confirmModal = document.getElementById('confirm-stream-modal');
+                    if (confirmModal) confirmModal.classList.add('open');
+                    
+                    document.getElementById('btn-just-stream').onclick = () => {
+                        confirmModal.classList.remove('open');
+                        startStream();
+                    };
+                    
+                    document.getElementById('btn-save-and-stream').onclick = async () => {
+                        confirmModal.classList.remove('open');
+                        // Save queue to custom playlist
+                        const pname = `Saved Queue ${new Date().toLocaleDateString()}`;
+                        state.customPlaylists.push({
+                            id: `playlist-${Date.now()}`,
+                            name: pname,
+                            songs: [...state.queue]
+                        });
+                        saveState();
+                        showToast('Queue saved to ' + pname);
+                        startStream();
+                    };
+                    
+                    document.getElementById('close-confirm-stream-modal').onclick = () => {
+                        confirmModal.classList.remove('open');
+                    };
+                } else {
+                    startStream();
                 }
             });
         });

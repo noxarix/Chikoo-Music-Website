@@ -107,6 +107,13 @@
                         <div class="lang-option" data-value="hindi">Hindi</div>
                         <div class="lang-option" data-value="english">English</div>
                         <div class="lang-option" data-value="punjabi">Punjabi</div>
+                        <div class="lang-option" data-value="spanish">Spanish</div>
+                        <div class="lang-option" data-value="korean">Korean</div>
+                        <div class="lang-option" data-value="japanese">Japanese</div>
+                        <div class="lang-option" data-value="tamil">Tamil</div>
+                        <div class="lang-option" data-value="telugu">Telugu</div>
+                        <div class="lang-option" data-value="bhojpuri">Bhojpuri</div>
+                        <div class="lang-option" data-value="haryanvi">Haryanvi</div>
                     </div>
                 </div>
                 
@@ -123,14 +130,6 @@
                 <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 5px 0;"></div>
                 <button id="mobile-theme-btn" class="quick-option-btn" style="justify-content: flex-start; padding: 10px;"><i class="fa-solid fa-moon"></i> Theme</button>
                 <button id="mobile-auth-btn" class="quick-option-btn" style="justify-content: flex-start; padding: 10px; color: var(--accent-purple);"><i class="fa-solid fa-right-to-bracket"></i> <span>Login</span></button>
-            </div>
-
-            <div id="broadcast-banner" style="display: none; background: rgba(183, 33, 255, 0.2); border-bottom: 1px solid rgba(183, 33, 255, 0.4); padding: 10px 20px; color: var(--text-primary); align-items: center; justify-content: space-between; font-size: 14px; font-weight: 500;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <i class="fa-solid fa-bullhorn" style="color: var(--accent-purple);"></i>
-                    <span id="broadcast-message-text"></span>
-                </div>
-                <button id="close-broadcast-btn" style="background: none; border: none; color: var(--text-secondary); cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
             <div id="content-area" class="page-content">
@@ -632,6 +631,45 @@
             </div>
             <div id="queue-list" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 10px;">
                 <div class="placeholder-text">Your queue is empty.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Stream Modal -->
+    <div id="confirm-stream-modal" class="modal-overlay">
+        <div class="modal-content glass" style="max-width: 400px; text-align: center;">
+            <button class="close-modal" id="close-confirm-stream-modal"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="margin-bottom: 15px;">Save Queue?</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Starting a Stream will replace your current queue. Do you want to save your current queue to a playlist first?</p>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <button class="action-btn primary" id="btn-save-and-stream" style="padding: 10px 20px;">Save & Stream</button>
+                <button class="action-btn" id="btn-just-stream" style="padding: 10px 20px; background: rgba(255, 50, 50, 0.2); border-color: rgba(255, 50, 50, 0.4);">Just Clear & Stream</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Stream Modal -->
+    <div id="confirm-stream-modal" class="modal-overlay">
+        <div class="modal-content glass" style="max-width: 400px; text-align: center;">
+            <button class="close-modal" id="close-confirm-stream-modal"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="margin-bottom: 15px;">Save Queue?</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Starting a Stream will replace your current queue. Do you want to save your current queue to a playlist first?</p>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <button class="action-btn primary" id="btn-save-and-stream" style="padding: 10px 20px;">Save & Stream</button>
+                <button class="action-btn" id="btn-just-stream" style="padding: 10px 20px; background: rgba(255, 50, 50, 0.2); border-color: rgba(255, 50, 50, 0.4);">Just Clear & Stream</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Modal -->
+    <div id="notifications-modal" class="modal-overlay">
+        <div class="modal-content glass" style="max-width: 500px; max-height: 80vh; display: flex; flex-direction: column;">
+            <button class="close-modal" id="close-notifications-modal"><i class="fa-solid fa-xmark"></i></button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;"><i class="fa-solid fa-bell" style="color: var(--accent-purple);"></i> Notifications</h2>
+            </div>
+            <div id="notifications-list" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 10px;">
+                <div class="placeholder-text">No new notifications.</div>
             </div>
         </div>
     </div>

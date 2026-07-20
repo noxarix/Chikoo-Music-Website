@@ -6,8 +6,23 @@ class AirbeatsAPI {
         try {
             const response = await fetch(`https://api.airbeats.xyz/api/search/songs?query=${encodeURIComponent(query)}&limit=${limit}&page=${page}`);
             const json = await response.json();
-            if (json.success && json.data) {
-                return json.data.results || [];
+            if (json.success && json.data && json.data.results) {
+                let results = json.data.results;
+                
+                // Filter out religious songs unless specifically requested
+                const religiousTerms = ['hanuman', 'chalisa', 'bhakti', 'bhajan', 'aarti', 'mantra', 'shiv', 'krishna', 'radhe', 'ganesh', 'shree', 'shri', 'om', 'sai', 'mata', 'durga', 'mahakal', 'bholenath', 'khatu'];
+                const queryLower = query.toLowerCase();
+                const isReligiousQuery = religiousTerms.some(term => queryLower.includes(term));
+                
+                if (!isReligiousQuery) {
+                    results = results.filter(song => {
+                        const name = song.name.toLowerCase();
+                        const artist = song.artists?.primary?.[0]?.name?.toLowerCase() || '';
+                        return !religiousTerms.some(term => name.includes(term) || artist.includes(term));
+                    });
+                }
+                
+                return results;
             }
         } catch (error) {
             console.warn('API fetch failed.', error);
